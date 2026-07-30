@@ -8,6 +8,7 @@ module.exports = {
         .setDescription("Verwaltung der Roten Essenzen")
 
 
+        // 🩸➕ ADD
         .addSubcommand(sub =>
             sub
                 .setName("add")
@@ -33,6 +34,7 @@ module.exports = {
         )
 
 
+        // 🩸➖ REMOVE
         .addSubcommand(sub =>
             sub
                 .setName("remove")
@@ -58,6 +60,7 @@ module.exports = {
         )
 
 
+        // 💎 KONTO
         .addSubcommand(sub =>
             sub
                 .setName("konto")
@@ -71,6 +74,7 @@ module.exports = {
         )
 
 
+        // 👑 TOP
         .addSubcommand(sub =>
             sub
                 .setName("top")
@@ -78,6 +82,7 @@ module.exports = {
         )
 
 
+        // 📜 HISTORIE
         .addSubcommand(sub =>
             sub
                 .setName("historie")
@@ -91,12 +96,12 @@ module.exports = {
         )
 
 
+        // 🔄 RESET
         .addSubcommand(sub =>
             sub
                 .setName("reset")
-                .setDescription("Setzt alle Essenzen zurück")
+                .setDescription("Setzt alle Essenzen auf 0")
         ),
-
 
 
     async execute(interaction) {
@@ -104,12 +109,21 @@ module.exports = {
         const command = interaction.options.getSubcommand();
 
 
-
-        // KONTO
+        const hasPermission =
+            interaction.member.permissions.has(
+                PermissionFlagsBits.ManageGuild
+            );
+        // =========================
+        // 💎 KONTO
+        // =========================
 
         if (command === "konto") {
 
             const user = interaction.options.getUser("nutzer");
+
+            const member = await interaction.guild.members.fetch(user.id);
+            const displayName = member.displayName;
+
 
             const konto = db.prepare(
                 "SELECT essenzen FROM users WHERE id = ?"
@@ -118,21 +132,23 @@ module.exports = {
 
             if (!konto) {
                 return interaction.reply(
-                    "Keine Essenzen vorhanden."
+                    `💎 **${displayName}** hat noch keine Essenzen.`
                 );
             }
 
 
             return interaction.reply(
                 `💎 **Rote Essenzen Konto**\n\n` +
-                `Nutzer: **${user.username}**\n` +
-                `Kontostand: **${konto.essenzen} Essenzen**`
+                `Nutzer: **${displayName}**\n` +
+                `Essenzen: **${konto.essenzen}**`
             );
         }
 
 
 
-        // TOP
+        // =========================
+        // 👑 TOP
+        // =========================
 
         if (command === "top") {
 
@@ -143,25 +159,19 @@ module.exports = {
 
             if (users.length === 0) {
                 return interaction.reply(
-                    "Keine Daten vorhanden."
+                    "👑 Keine Daten vorhanden."
                 );
             }
 
 
-            let text = "👑 **Rote Essenzen Rangliste**\n\n";
+            let text =
+                "👑 **Rote Essenzen Rangliste**\n\n";
 
 
             users.forEach((user, index) => {
 
-                let platz;
-
-                if (index === 0) platz = "🥇";
-                else if (index === 1) platz = "🥈";
-                else if (index === 2) platz = "🥉";
-                else platz = `${index + 1}.`;
-
-
-                text += `${platz} **${user.name}** - ${user.essenzen} Essenzen\n`;
+                text +=
+                    `${index + 1}. **${user.name}** - ${user.essenzen} Essenzen\n`;
 
             });
 
@@ -171,11 +181,17 @@ module.exports = {
 
 
 
-        // HISTORIE
+
+        // =========================
+        // 📜 HISTORIE
+        // =========================
 
         if (command === "historie") {
 
             const user = interaction.options.getUser("nutzer");
+
+            const member = await interaction.guild.members.fetch(user.id);
+            const displayName = member.displayName;
 
 
             const history = db.prepare(
@@ -185,30 +201,28 @@ module.exports = {
 
 
             if (history.length === 0) {
+
                 return interaction.reply(
-                    "Keine Historie vorhanden."
+                    `📜 Keine Historie für **${displayName}** gefunden.`
                 );
+
             }
 
 
+
             let text =
-                `📜 **Rote Essenzen Historie**\n\n` +
-                `Nutzer: **${user.username}**\n\n`;
+                `📜 **Historie von ${displayName}**\n\n`;
 
 
 
             history.forEach(entry => {
 
-                const emoji = entry.amount >= 0 ? "🩸➕" : "🩸➖";
-
-
                 text +=
-                    `${emoji} **${entry.amount > 0 ? "+" : ""}${entry.amount}** Essenzen\n` +
-                    `📝 Grund: ${entry.reason}\n` +
-                    `Moderator: ${entry.moderator}\n` +
-                    `Datum: ${entry.date}\n\n`;
+                    `${entry.amount > 0 ? "🩸➕" : "🩸➖"} **${entry.amount}** Essenzen\n` +
+                    `📝 Grund: ${entry.reason}\n\n`;
 
             });
+
 
 
             return interaction.reply(text);
@@ -216,63 +230,33 @@ module.exports = {
 
 
 
-        // RESET
 
-        if (command === "reset") {
+        // =========================
+        // RECHTE FÜR VERWALTUNG
+        // =========================
 
-
-            if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
-
-                return interaction.reply({
-                    content: "Keine Berechtigung.",
-                    ephemeral: true
-                });
-
-            }
-
-
-            db.prepare(
-                "UPDATE users SET essenzen = 0"
-            ).run();
-
-
-            db.prepare(
-                "DELETE FROM history"
-            ).run();
-
-
-
-            return interaction.reply(
-                `🔄 **Rote Essenzen Reset durchgeführt!**\n\n` +
-                `Alle Kontostände wurden auf **0** gesetzt.\n` +
-                `Historie wurde gelöscht.\n\n` +
-                `Ausgeführt von: **${interaction.user.username}**`
-            );
-        }
-
-
-
-        // RECHTE
-
-        if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuild)) {
+        if (!hasPermission) {
 
             return interaction.reply({
-                content: "Keine Berechtigung.",
+                content: "❌ Keine Berechtigung.",
                 ephemeral: true
             });
 
         }
-
-
-
-        // ADD
+        // =========================
+        // 🩸➕ ADD
+        // =========================
 
         if (command === "add") {
-
 
             const user = interaction.options.getUser("nutzer");
             const amount = interaction.options.getInteger("anzahl");
             const reason = interaction.options.getString("grund");
+
+
+            const member = await interaction.guild.members.fetch(user.id);
+            const displayName = member.displayName;
+
 
 
             const existing = db.prepare(
@@ -287,17 +271,19 @@ module.exports = {
                     "UPDATE users SET essenzen = essenzen + ?, name = ? WHERE id = ?"
                 ).run(
                     amount,
-                    user.username,
+                    displayName,
                     user.id
                 );
 
+
             } else {
 
+
                 db.prepare(
-                    "INSERT INTO users (id,name,essenzen) VALUES (?,?,?)"
+                    "INSERT INTO users (id, name, essenzen) VALUES (?, ?, ?)"
                 ).run(
                     user.id,
-                    user.username,
+                    displayName,
                     amount
                 );
 
@@ -324,22 +310,31 @@ module.exports = {
 
 
             return interaction.reply(
-                `🩸➕ **${user.username}** hat **${amount} Rote Essenzen** erhalten.\n\n` +
-                `💎 Neuer Kontostand: **${konto.essenzen}**\n` +
+                `🩸➕ **${displayName}** hat **${amount} Essenzen** erhalten.\n\n` +
+                `💎 Kontostand: **${konto.essenzen}**\n` +
                 `📝 Grund: ${reason}`
             );
+
         }
 
 
 
-        // REMOVE
+
+
+        // =========================
+        // 🩸➖ REMOVE
+        // =========================
 
         if (command === "remove") {
-
 
             const user = interaction.options.getUser("nutzer");
             const amount = interaction.options.getInteger("anzahl");
             const reason = interaction.options.getString("grund");
+
+
+            const member = await interaction.guild.members.fetch(user.id);
+            const displayName = member.displayName;
+
 
 
             const konto = db.prepare(
@@ -351,7 +346,7 @@ module.exports = {
             if (!konto) {
 
                 return interaction.reply(
-                    "Dieser Nutzer besitzt keine Essenzen."
+                    `🩸➖ **${displayName}** besitzt keine Essenzen.`
                 );
 
             }
@@ -361,7 +356,7 @@ module.exports = {
             if (konto.essenzen < amount) {
 
                 return interaction.reply(
-                    "Nicht genügend Essenzen vorhanden."
+                    `🩸➖ **${displayName}** hat nicht genug Essenzen.`
                 );
 
             }
@@ -369,9 +364,10 @@ module.exports = {
 
 
             db.prepare(
-                "UPDATE users SET essenzen = essenzen - ? WHERE id = ?"
+                "UPDATE users SET essenzen = essenzen - ?, name = ? WHERE id = ?"
             ).run(
                 amount,
+                displayName,
                 user.id
             );
 
@@ -396,10 +392,34 @@ module.exports = {
 
 
             return interaction.reply(
-                `🩸➖ **${user.username}** wurden **${amount} Rote Essenzen** entfernt.\n\n` +
-                `💎 Neuer Kontostand: **${neuerStand.essenzen}**\n` +
+                `🩸➖ **${displayName}** wurden **${amount} Essenzen** entfernt.\n\n` +
+                `💎 Kontostand: **${neuerStand.essenzen}**\n` +
                 `📝 Grund: ${reason}`
             );
+
+        }
+
+
+
+
+
+        // =========================
+        // 🔄 RESET
+        // =========================
+
+        if (command === "reset") {
+
+
+            db.prepare(
+                "UPDATE users SET essenzen = 0"
+            ).run();
+
+
+
+            return interaction.reply(
+                "🔄 Alle Essenzen wurden auf 0 gesetzt."
+            );
+
         }
 
     }
