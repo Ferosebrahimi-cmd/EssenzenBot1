@@ -1,5 +1,13 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const { 
+    SlashCommandBuilder, 
+    PermissionFlagsBits,
+    EmbedBuilder
+} = require("discord.js");
+
 const db = require("../database/database");
+
+const EMBED_COLOR = 0x8B0000;
+
 
 module.exports = {
 
@@ -104,6 +112,7 @@ module.exports = {
         ),
 
 
+
     async execute(interaction) {
 
         const command = interaction.options.getSubcommand();
@@ -113,6 +122,9 @@ module.exports = {
             interaction.member.permissions.has(
                 PermissionFlagsBits.ManageGuild
             );
+
+
+
         // =========================
         // 💎 KONTO
         // =========================
@@ -130,18 +142,28 @@ module.exports = {
             ).get(user.id);
 
 
-            if (!konto) {
-                return interaction.reply(
-                    `💎 **${displayName}** hat noch keine Essenzen.`
+
+            const embed = new EmbedBuilder()
+                .setColor(EMBED_COLOR)
+                .setTitle("💎 Rote Essenzen Konto")
+                .addFields(
+                    {
+                        name: "👤 Nutzer",
+                        value: displayName,
+                        inline: true
+                    },
+                    {
+                        name: "💎 Kontostand",
+                        value: `${konto ? konto.essenzen : 0} Essenzen`,
+                        inline: true
+                    }
                 );
-            }
 
 
-            return interaction.reply(
-                `💎 **Rote Essenzen Konto**\n\n` +
-                `Nutzer: **${displayName}**\n` +
-                `Essenzen: **${konto.essenzen}**`
-            );
+            return interaction.reply({
+                embeds: [embed]
+            });
+
         }
 
 
@@ -158,30 +180,46 @@ module.exports = {
 
 
             if (users.length === 0) {
+
                 return interaction.reply(
                     "👑 Keine Daten vorhanden."
                 );
+
             }
 
 
-            let text =
-                "👑 **Rote Essenzen Rangliste**\n\n";
+            let ranking = "";
 
 
             users.forEach((user, index) => {
 
-                text +=
-                    `${index + 1}. **${user.name}** - ${user.essenzen} Essenzen\n`;
+                let platz;
+
+                if (index === 0) platz = "🥇";
+                else if (index === 1) platz = "🥈";
+                else if (index === 2) platz = "🥉";
+                else platz = `${index + 1}.`;
+
+
+                ranking +=
+                    `${platz} **${user.name}** - ${user.essenzen} Essenzen\n`;
 
             });
 
 
-            return interaction.reply(text);
+
+            const embed = new EmbedBuilder()
+                .setColor(EMBED_COLOR)
+                .setTitle("👑 Rote Essenzen Rangliste")
+                .setDescription(ranking);
+
+
+
+            return interaction.reply({
+                embeds: [embed]
+            });
+
         }
-
-
-
-
         // =========================
         // 📜 HISTORIE
         // =========================
@@ -202,47 +240,68 @@ module.exports = {
 
             if (history.length === 0) {
 
-                return interaction.reply(
-                    `📜 Keine Historie für **${displayName}** gefunden.`
-                );
+                const embed = new EmbedBuilder()
+                    .setColor(EMBED_COLOR)
+                    .setTitle("📜 Essenzen Historie")
+                    .setDescription(
+                        `Keine Historie für **${displayName}** vorhanden.`
+                    );
+
+
+                return interaction.reply({
+                    embeds: [embed]
+                });
 
             }
 
 
 
-            let text =
-                `📜 **Historie von ${displayName}**\n\n`;
-
+            let text = "";
 
 
             history.forEach(entry => {
 
                 text +=
-                    `${entry.amount > 0 ? "🩸➕" : "🩸➖"} **${entry.amount}** Essenzen\n` +
-                    `📝 Grund: ${entry.reason}\n\n`;
+                    `${entry.amount > 0 ? "🩸➕" : "🩸➖"} **${entry.amount} Essenzen**\n` +
+                    `📝 ${entry.reason}\n\n`;
 
             });
 
 
 
-            return interaction.reply(text);
+            const embed = new EmbedBuilder()
+                .setColor(EMBED_COLOR)
+                .setTitle(`📜 Essenzen Historie`)
+                .setDescription(
+                    `👤 **${displayName}**\n\n${text}`
+                );
+
+
+            return interaction.reply({
+                embeds: [embed]
+            });
+
         }
 
 
 
 
         // =========================
-        // RECHTE FÜR VERWALTUNG
+        // RECHTE
         // =========================
 
         if (!hasPermission) {
 
             return interaction.reply({
-                content: "❌ Keine Berechtigung.",
+                content: "Keine Berechtigung.",
                 ephemeral: true
             });
 
         }
+
+
+
+
         // =========================
         // 🩸➕ ADD
         // =========================
@@ -278,9 +337,8 @@ module.exports = {
 
             } else {
 
-
                 db.prepare(
-                    "INSERT INTO users (id, name, essenzen) VALUES (?, ?, ?)"
+                    "INSERT INTO users (id,name,essenzen) VALUES (?,?,?)"
                 ).run(
                     user.id,
                     displayName,
@@ -309,11 +367,34 @@ module.exports = {
 
 
 
-            return interaction.reply(
-                `🩸➕ **${displayName}** hat **${amount} Essenzen** erhalten.\n\n` +
-                `💎 Kontostand: **${konto.essenzen}**\n` +
-                `📝 Grund: ${reason}`
-            );
+            const embed = new EmbedBuilder()
+                .setColor(EMBED_COLOR)
+                .setTitle("🩸➕ Essenzen hinzugefügt")
+                .addFields(
+                    {
+                        name: "👤 Nutzer",
+                        value: displayName,
+                        inline: true
+                    },
+                    {
+                        name: "💎 Menge",
+                        value: `+${amount} Essenzen`,
+                        inline: true
+                    },
+                    {
+                        name: "📝 Grund",
+                        value: reason
+                    },
+                    {
+                        name: "💎 Neuer Kontostand",
+                        value: `${konto.essenzen} Essenzen`
+                    }
+                );
+
+
+            return interaction.reply({
+                embeds: [embed]
+            });
 
         }
 
@@ -346,7 +427,7 @@ module.exports = {
             if (!konto) {
 
                 return interaction.reply(
-                    `🩸➖ **${displayName}** besitzt keine Essenzen.`
+                    "🩸➖ Nutzer besitzt keine Essenzen."
                 );
 
             }
@@ -356,7 +437,7 @@ module.exports = {
             if (konto.essenzen < amount) {
 
                 return interaction.reply(
-                    `🩸➖ **${displayName}** hat nicht genug Essenzen.`
+                    "🩸➖ Nicht genug Essenzen vorhanden."
                 );
 
             }
@@ -391,11 +472,34 @@ module.exports = {
 
 
 
-            return interaction.reply(
-                `🩸➖ **${displayName}** wurden **${amount} Essenzen** entfernt.\n\n` +
-                `💎 Kontostand: **${neuerStand.essenzen}**\n` +
-                `📝 Grund: ${reason}`
-            );
+            const embed = new EmbedBuilder()
+                .setColor(EMBED_COLOR)
+                .setTitle("🩸➖ Essenzen entfernt")
+                .addFields(
+                    {
+                        name: "👤 Nutzer",
+                        value: displayName,
+                        inline: true
+                    },
+                    {
+                        name: "💎 Menge",
+                        value: `-${amount} Essenzen`,
+                        inline: true
+                    },
+                    {
+                        name: "📝 Grund",
+                        value: reason
+                    },
+                    {
+                        name: "💎 Neuer Kontostand",
+                        value: `${neuerStand.essenzen} Essenzen`
+                    }
+                );
+
+
+            return interaction.reply({
+                embeds: [embed]
+            });
 
         }
 
@@ -409,16 +513,23 @@ module.exports = {
 
         if (command === "reset") {
 
-
             db.prepare(
                 "UPDATE users SET essenzen = 0"
             ).run();
 
 
 
-            return interaction.reply(
-                "🔄 Alle Essenzen wurden auf 0 gesetzt."
-            );
+            const embed = new EmbedBuilder()
+                .setColor(EMBED_COLOR)
+                .setTitle("🔄 Essenzen Reset")
+                .setDescription(
+                    "Alle Essenzen wurden auf **0** gesetzt."
+                );
+
+
+            return interaction.reply({
+                embeds: [embed]
+            });
 
         }
 
