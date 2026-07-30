@@ -15,6 +15,8 @@ module.exports = {
         .setName("essenzen")
         .setDescription("Verwaltung der Roten Essenzen")
 
+
+        // 🩸 ADD
         .addSubcommand(sub =>
             sub
                 .setName("add")
@@ -31,14 +33,16 @@ module.exports = {
                         .setDescription("Anzahl der Essenzen")
                         .setRequired(true)
                 )
-                .addStringOption(option =>
+                .addAttachmentOption(option =>
                     option
-                        .setName("grund")
-                        .setDescription("Grund der Vergabe")
+                        .setName("bild")
+                        .setDescription("Beweisbild hochladen")
                         .setRequired(true)
                 )
         )
 
+
+        // 🩸 REMOVE
         .addSubcommand(sub =>
             sub
                 .setName("remove")
@@ -63,6 +67,8 @@ module.exports = {
                 )
         )
 
+
+        // 💎 KONTO
         .addSubcommand(sub =>
             sub
                 .setName("konto")
@@ -75,12 +81,16 @@ module.exports = {
                 )
         )
 
+
+        // 👑 TOP
         .addSubcommand(sub =>
             sub
                 .setName("top")
                 .setDescription("Zeigt die Essenzen Rangliste")
         )
 
+
+        // 📜 HISTORIE
         .addSubcommand(sub =>
             sub
                 .setName("historie")
@@ -93,6 +103,8 @@ module.exports = {
                 )
         )
 
+
+        // 🔄 RESET
         .addSubcommand(sub =>
             sub
                 .setName("reset")
@@ -100,9 +112,12 @@ module.exports = {
         ),
 
 
+
     async execute(interaction) {
 
+
         const command = interaction.options.getSubcommand();
+
 
         const hasPermission =
             interaction.member.permissions.has(
@@ -110,21 +125,24 @@ module.exports = {
             );
 
 
-        // =========================
-        // 💎 KONTO
-        // =========================
+
+        // =====================
+        // KONTO
+        // =====================
 
         if (command === "konto") {
 
             const user = interaction.options.getUser("nutzer");
 
-            const member = await interaction.guild.members.fetch(user.id);
-            const displayName = member.displayName;
+            const member =
+                await interaction.guild.members.fetch(user.id);
 
 
-            const konto = await db.User.findOne({
-                id: user.id
-            });
+            const konto =
+                await db.User.findOne({
+                    id: user.id
+                });
+
 
 
             const embed = new EmbedBuilder()
@@ -133,136 +151,142 @@ module.exports = {
                 .addFields(
                     {
                         name: "👤 Nutzer",
-                        value: displayName,
+                        value: member.displayName,
                         inline: true
                     },
                     {
-                        name: "💎 Kontostand",
-                        value: `${konto ? konto.essenzen : 0} Essenzen`,
+                        name: "💎 Essenzen",
+                        value:
+                            `${konto ? konto.essenzen : 0} Essenzen`,
                         inline: true
                     }
                 );
 
 
             return interaction.reply({
-                embeds: [embed]
+                embeds:[embed]
             });
 
         }
-        // =========================
-        // 👑 TOP
-        // =========================
+
+
+
+        // =====================
+        // TOP
+        // =====================
 
         if (command === "top") {
 
-            const users = await db.User.find()
-                .sort({ essenzen: -1 })
+
+            const users =
+                await db.User.find()
+                .sort({
+                    essenzen:-1
+                })
                 .limit(10);
 
 
-            if (users.length === 0) {
 
+            if(users.length === 0)
                 return interaction.reply(
                     "👑 Keine Daten vorhanden."
                 );
 
-            }
+
+            let ranking="";
 
 
-            let ranking = "";
+            users.forEach((user,index)=>{
 
-
-            users.forEach((user, index) => {
-
-                let platz;
-
-                if (index === 0) platz = "🥇";
-                else if (index === 1) platz = "🥈";
-                else if (index === 2) platz = "🥉";
-                else platz = `${index + 1}.`;
+                let platz =
+                    index === 0 ? "🥇" :
+                    index === 1 ? "🥈" :
+                    index === 2 ? "🥉" :
+                    `${index+1}.`;
 
 
                 ranking +=
-                    `${platz} **${user.name}** - ${user.essenzen} Essenzen\n`;
+                `${platz} **${user.name}** - ${user.essenzen} Essenzen\n`;
 
             });
 
 
-            const embed = new EmbedBuilder()
+
+            const embed =
+                new EmbedBuilder()
                 .setColor(EMBED_COLOR)
                 .setTitle("👑 Rote Essenzen Rangliste")
                 .setDescription(ranking);
 
 
+
             return interaction.reply({
-                embeds: [embed]
+                embeds:[embed]
             });
 
         }
 
 
 
-        // =========================
-        // 📜 HISTORIE
-        // =========================
 
-        if (command === "historie") {
+        // =====================
+        // HISTORIE
+        // =====================
 
-            const user = interaction.options.getUser("nutzer");
+        if(command==="historie"){
 
-            const member = await interaction.guild.members.fetch(user.id);
-            const displayName = member.displayName;
+            const user =
+                interaction.options.getUser("nutzer");
 
 
-            const history = await db.History.find({
-                user_id: user.id
-            })
-                .sort({ _id: -1 })
+            const member =
+                await interaction.guild.members.fetch(user.id);
+
+
+
+            const history =
+                await db.History.find({
+                    user_id:user.id
+                })
+                .sort({
+                    _id:-1
+                })
                 .limit(10);
 
 
 
-            if (history.length === 0) {
-
-                const embed = new EmbedBuilder()
-                    .setColor(EMBED_COLOR)
-                    .setTitle("📜 Essenzen Historie")
-                    .setDescription(
-                        `Keine Historie für **${displayName}** vorhanden.`
-                    );
-
-
-                return interaction.reply({
-                    embeds: [embed]
-                });
-
-            }
-
-
-
-            let text = "";
-
-
-            history.forEach(entry => {
-
-                text +=
-                    `${entry.amount > 0 ? "🩸➕" : "🩸➖"} **${entry.amount} Essenzen**\n` +
-                    `📝 ${entry.reason}\n\n`;
-
-            });
-
-
-
-            const embed = new EmbedBuilder()
-                .setColor(EMBED_COLOR)
-                .setTitle("📜 Essenzen Historie")
-                .setDescription(
-                    `👤 **${displayName}**\n\n${text}`
+            if(history.length===0)
+                return interaction.reply(
+                    "📜 Keine Historie vorhanden."
                 );
 
 
+
+            let text="";
+
+
+            history.forEach(entry=>{
+
+                text +=
+                `${entry.amount > 0 ? "🩸➕":"🩸➖"} **${entry.amount} Essenzen**\n`+
+                `📌 ${entry.reason}\n\n`;
+
+            });
+
+
+
+            const embed =
+                new EmbedBuilder()
+                .setColor(EMBED_COLOR)
+                .setTitle("📜 Essenzen Historie")
+                .setDescription(
+                    `👤 ${member.displayName}\n\n${text}`
+                );
+
+
+
             return interaction.reply({
-                embeds: [embed]
+                embeds:[embed]
             });
 
         }
@@ -270,15 +294,14 @@ module.exports = {
 
 
 
-        // =========================
+
         // RECHTE
-        // =========================
 
-        if (!hasPermission) {
+        if(!hasPermission){
 
             return interaction.reply({
-                content: "Keine Berechtigung.",
-                ephemeral: true
+                content:"❌ Keine Berechtigung.",
+                ephemeral:true
             });
 
         }
@@ -286,41 +309,55 @@ module.exports = {
 
 
 
-        // =========================
-        // 🩸 ADD
-        // =========================
+        // =====================
+        // ADD
+        // =====================
 
-        if (command === "add") {
-
-            const user = interaction.options.getUser("nutzer");
-            const amount = interaction.options.getInteger("anzahl");
-            const reason = interaction.options.getString("grund");
+        if(command==="add"){
 
 
-            const member = await interaction.guild.members.fetch(user.id);
-            const displayName = member.displayName;
+            const user =
+                interaction.options.getUser("nutzer");
 
 
+            const amount =
+                interaction.options.getInteger("anzahl");
 
-            let konto = await db.User.findOne({
-                id: user.id
-            });
+
+            const image =
+                interaction.options.getAttachment("bild");
 
 
 
-            if (konto) {
+            const member =
+                await interaction.guild.members.fetch(user.id);
+
+
+
+            let konto =
+                await db.User.findOne({
+                    id:user.id
+                });
+
+
+
+            if(konto){
 
                 konto.essenzen += amount;
-                konto.name = displayName;
+                konto.name = member.displayName;
 
                 await konto.save();
 
-            } else {
+            }else{
 
-                konto = await db.User.create({
-                    id: user.id,
-                    name: displayName,
-                    essenzen: amount
+
+                konto =
+                await db.User.create({
+
+                    id:user.id,
+                    name:member.displayName,
+                    essenzen:amount
+
                 });
 
             }
@@ -328,169 +365,160 @@ module.exports = {
 
 
             await db.History.create({
-                user_id: user.id,
-                amount: amount,
-                reason: reason,
-                moderator: interaction.user.username,
-                date: new Date().toLocaleString("de-DE")
+
+                user_id:user.id,
+                amount:amount,
+                reason:image.url,
+                moderator:interaction.user.username,
+                date:new Date().toLocaleString("de-DE")
+
             });
 
 
 
-            const embed = new EmbedBuilder()
+            const embed =
+                new EmbedBuilder()
                 .setColor(EMBED_COLOR)
                 .setTitle("🩸➕ Essenzen hinzugefügt")
                 .addFields(
+
                     {
-                        name: "👤 Nutzer",
-                        value: displayName,
-                        inline: true
+                        name:"👤 Nutzer",
+                        value:member.displayName
                     },
+
                     {
-                        name: "💎 Menge",
-                        value: `+${amount} Essenzen`,
-                        inline: true
+                        name:"💎 Menge",
+                        value:`+${amount} Essenzen`
                     },
+
                     {
-                        name: "📝 Grund",
-                        value: reason
+                        name:"📸 Beweis",
+                        value:`[Bild öffnen](${image.url})`
                     },
+
                     {
-                        name: "💎 Neuer Kontostand",
-                        value: `${konto.essenzen} Essenzen`
+                        name:"💎 Kontostand",
+                        value:`${konto.essenzen} Essenzen`
                     }
+
                 );
 
 
+
             return interaction.reply({
-                embeds: [embed]
+                embeds:[embed]
             });
+
 
         }
 
 
 
 
-        // =========================
-        // 🩸 REMOVE
-        // =========================
 
-        if (command === "remove") {
+        // =====================
+        // REMOVE
+        // =====================
 
-            const user = interaction.options.getUser("nutzer");
-            const amount = interaction.options.getInteger("anzahl");
-            const reason = interaction.options.getString("grund");
+        if(command==="remove"){
 
 
-            const member = await interaction.guild.members.fetch(user.id);
-            const displayName = member.displayName;
+            const user =
+                interaction.options.getUser("nutzer");
+
+
+            const amount =
+                interaction.options.getInteger("anzahl");
+
+
+            const reason =
+                interaction.options.getString("grund");
 
 
 
-            const konto = await db.User.findOne({
-                id: user.id
-            });
+            const member =
+                await interaction.guild.members.fetch(user.id);
 
 
 
-            if (!konto) {
+            const konto =
+                await db.User.findOne({
+                    id:user.id
+                });
 
+
+
+            if(!konto)
                 return interaction.reply(
-                    "🩸➖ Nutzer besitzt keine Essenzen."
+                    "❌ Nutzer besitzt keine Essenzen."
                 );
-
-            }
-
-
-
-            if (konto.essenzen < amount) {
-
-                return interaction.reply(
-                    "🩸➖ Nicht genug Essenzen vorhanden."
-                );
-
-            }
 
 
 
             konto.essenzen -= amount;
-            konto.name = displayName;
+            konto.name = member.displayName;
+
 
             await konto.save();
 
 
 
             await db.History.create({
-                user_id: user.id,
-                amount: -amount,
-                reason: reason,
-                moderator: interaction.user.username,
-                date: new Date().toLocaleString("de-DE")
+
+                user_id:user.id,
+                amount:-amount,
+                reason:reason,
+                moderator:interaction.user.username,
+                date:new Date().toLocaleString("de-DE")
+
             });
 
 
 
-            const embed = new EmbedBuilder()
+            const embed =
+                new EmbedBuilder()
                 .setColor(EMBED_COLOR)
                 .setTitle("🩸➖ Essenzen entfernt")
-                .addFields(
-                    {
-                        name: "👤 Nutzer",
-                        value: displayName,
-                        inline: true
-                    },
-                    {
-                        name: "💎 Menge",
-                        value: `-${amount} Essenzen`,
-                        inline: true
-                    },
-                    {
-                        name: "📝 Grund",
-                        value: reason
-                    },
-                    {
-                        name: "💎 Neuer Kontostand",
-                        value: `${konto.essenzen} Essenzen`
-                    }
+                .setDescription(
+                    `${amount} Essenzen wurden entfernt.\nGrund: ${reason}`
                 );
 
 
             return interaction.reply({
-                embeds: [embed]
+                embeds:[embed]
             });
+
 
         }
 
 
 
 
-        // =========================
-        // 🔄 RESET
-        // =========================
 
-        if (command === "reset") {
+        // =====================
+        // RESET
+        // =====================
+
+        if(command==="reset"){
+
 
             await db.User.updateMany(
                 {},
                 {
-                    essenzen: 0
+                    essenzen:0
                 }
             );
 
 
-            const embed = new EmbedBuilder()
-                .setColor(EMBED_COLOR)
-                .setTitle("🔄 Essenzen Reset")
-                .setDescription(
-                    "Alle Essenzen wurden auf **0** gesetzt."
-                );
+            return interaction.reply(
+                "🔄 Alle Essenzen wurden zurückgesetzt."
+            );
 
-
-            return interaction.reply({
-                embeds: [embed]
-            });
 
         }
 
+
     }
 };
+
