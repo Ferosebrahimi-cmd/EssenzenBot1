@@ -216,7 +216,7 @@ module.exports = {
                 .sort({
                     essenzen:-1
                 })
-                .limit(10);
+                .limit(36);
 
 
 
