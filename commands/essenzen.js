@@ -1,5 +1,5 @@
-const { 
-    SlashCommandBuilder, 
+const {
+    SlashCommandBuilder,
     PermissionFlagsBits,
     EmbedBuilder
 } = require("discord.js");
@@ -15,8 +15,6 @@ module.exports = {
         .setName("essenzen")
         .setDescription("Verwaltung der Roten Essenzen")
 
-
-        // 🩸➕ ADD
         .addSubcommand(sub =>
             sub
                 .setName("add")
@@ -41,8 +39,6 @@ module.exports = {
                 )
         )
 
-
-        // 🩸➖ REMOVE
         .addSubcommand(sub =>
             sub
                 .setName("remove")
@@ -67,8 +63,6 @@ module.exports = {
                 )
         )
 
-
-        // 💎 KONTO
         .addSubcommand(sub =>
             sub
                 .setName("konto")
@@ -81,16 +75,12 @@ module.exports = {
                 )
         )
 
-
-        // 👑 TOP
         .addSubcommand(sub =>
             sub
                 .setName("top")
                 .setDescription("Zeigt die Essenzen Rangliste")
         )
 
-
-        // 📜 HISTORIE
         .addSubcommand(sub =>
             sub
                 .setName("historie")
@@ -103,8 +93,6 @@ module.exports = {
                 )
         )
 
-
-        // 🔄 RESET
         .addSubcommand(sub =>
             sub
                 .setName("reset")
@@ -112,17 +100,14 @@ module.exports = {
         ),
 
 
-
     async execute(interaction) {
 
         const command = interaction.options.getSubcommand();
-
 
         const hasPermission =
             interaction.member.permissions.has(
                 PermissionFlagsBits.ManageGuild
             );
-
 
 
         // =========================
@@ -137,10 +122,9 @@ module.exports = {
             const displayName = member.displayName;
 
 
-            const konto = db.prepare(
-                "SELECT essenzen FROM users WHERE id = ?"
-            ).get(user.id);
-
+            const konto = await db.User.findOne({
+                id: user.id
+            });
 
 
             const embed = new EmbedBuilder()
@@ -165,18 +149,15 @@ module.exports = {
             });
 
         }
-
-
-
         // =========================
         // 👑 TOP
         // =========================
 
         if (command === "top") {
 
-            const users = db.prepare(
-                "SELECT name, essenzen FROM users ORDER BY essenzen DESC LIMIT 10"
-            ).all();
+            const users = await db.User.find()
+                .sort({ essenzen: -1 })
+                .limit(10);
 
 
             if (users.length === 0) {
@@ -207,12 +188,10 @@ module.exports = {
             });
 
 
-
             const embed = new EmbedBuilder()
                 .setColor(EMBED_COLOR)
                 .setTitle("👑 Rote Essenzen Rangliste")
                 .setDescription(ranking);
-
 
 
             return interaction.reply({
@@ -220,6 +199,9 @@ module.exports = {
             });
 
         }
+
+
+
         // =========================
         // 📜 HISTORIE
         // =========================
@@ -232,9 +214,11 @@ module.exports = {
             const displayName = member.displayName;
 
 
-            const history = db.prepare(
-                "SELECT * FROM history WHERE user_id = ? ORDER BY id DESC LIMIT 10"
-            ).all(user.id);
+            const history = await db.History.find({
+                user_id: user.id
+            })
+                .sort({ _id: -1 })
+                .limit(10);
 
 
 
@@ -271,7 +255,7 @@ module.exports = {
 
             const embed = new EmbedBuilder()
                 .setColor(EMBED_COLOR)
-                .setTitle(`📜 Essenzen Historie`)
+                .setTitle("📜 Essenzen Historie")
                 .setDescription(
                     `👤 **${displayName}**\n\n${text}`
                 );
@@ -303,7 +287,7 @@ module.exports = {
 
 
         // =========================
-        // 🩸➕ ADD
+        // 🩸 ADD
         // =========================
 
         if (command === "add") {
@@ -318,52 +302,38 @@ module.exports = {
 
 
 
-            const existing = db.prepare(
-                "SELECT * FROM users WHERE id = ?"
-            ).get(user.id);
+            let konto = await db.User.findOne({
+                id: user.id
+            });
 
 
 
-            if (existing) {
+            if (konto) {
 
-                db.prepare(
-                    "UPDATE users SET essenzen = essenzen + ?, name = ? WHERE id = ?"
-                ).run(
-                    amount,
-                    displayName,
-                    user.id
-                );
+                konto.essenzen += amount;
+                konto.name = displayName;
 
+                await konto.save();
 
             } else {
 
-                db.prepare(
-                    "INSERT INTO users (id,name,essenzen) VALUES (?,?,?)"
-                ).run(
-                    user.id,
-                    displayName,
-                    amount
-                );
+                konto = await db.User.create({
+                    id: user.id,
+                    name: displayName,
+                    essenzen: amount
+                });
 
             }
 
 
 
-            db.prepare(
-                "INSERT INTO history (user_id, amount, reason, moderator, date) VALUES (?, ?, ?, ?, ?)"
-            ).run(
-                user.id,
-                amount,
-                reason,
-                interaction.user.username,
-                new Date().toLocaleString("de-DE")
-            );
-
-
-
-            const konto = db.prepare(
-                "SELECT essenzen FROM users WHERE id = ?"
-            ).get(user.id);
+            await db.History.create({
+                user_id: user.id,
+                amount: amount,
+                reason: reason,
+                moderator: interaction.user.username,
+                date: new Date().toLocaleString("de-DE")
+            });
 
 
 
@@ -401,9 +371,8 @@ module.exports = {
 
 
 
-
         // =========================
-        // 🩸➖ REMOVE
+        // 🩸 REMOVE
         // =========================
 
         if (command === "remove") {
@@ -418,9 +387,9 @@ module.exports = {
 
 
 
-            const konto = db.prepare(
-                "SELECT essenzen FROM users WHERE id = ?"
-            ).get(user.id);
+            const konto = await db.User.findOne({
+                id: user.id
+            });
 
 
 
@@ -444,31 +413,20 @@ module.exports = {
 
 
 
-            db.prepare(
-                "UPDATE users SET essenzen = essenzen - ?, name = ? WHERE id = ?"
-            ).run(
-                amount,
-                displayName,
-                user.id
-            );
+            konto.essenzen -= amount;
+            konto.name = displayName;
+
+            await konto.save();
 
 
 
-            db.prepare(
-                "INSERT INTO history (user_id, amount, reason, moderator, date) VALUES (?, ?, ?, ?, ?)"
-            ).run(
-                user.id,
-                -amount,
-                reason,
-                interaction.user.username,
-                new Date().toLocaleString("de-DE")
-            );
-
-
-
-            const neuerStand = db.prepare(
-                "SELECT essenzen FROM users WHERE id = ?"
-            ).get(user.id);
+            await db.History.create({
+                user_id: user.id,
+                amount: -amount,
+                reason: reason,
+                moderator: interaction.user.username,
+                date: new Date().toLocaleString("de-DE")
+            });
 
 
 
@@ -492,7 +450,7 @@ module.exports = {
                     },
                     {
                         name: "💎 Neuer Kontostand",
-                        value: `${neuerStand.essenzen} Essenzen`
+                        value: `${konto.essenzen} Essenzen`
                     }
                 );
 
@@ -506,17 +464,18 @@ module.exports = {
 
 
 
-
         // =========================
         // 🔄 RESET
         // =========================
 
         if (command === "reset") {
 
-            db.prepare(
-                "UPDATE users SET essenzen = 0"
-            ).run();
-
+            await db.User.updateMany(
+                {},
+                {
+                    essenzen: 0
+                }
+            );
 
 
             const embed = new EmbedBuilder()

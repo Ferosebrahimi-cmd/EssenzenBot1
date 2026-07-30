@@ -1,26 +1,42 @@
-const Database = require("better-sqlite3");
+const mongoose = require("mongoose");
 
-const db = new Database("./database/essenzen.db");
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => {
+        console.log("✅ MongoDB verbunden");
+    })
+    .catch(err => {
+        console.error("❌ MongoDB Fehler:", err);
+    });
 
-// Tabelle für Nutzer
-db.prepare(`
-CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
-    name TEXT,
-    essenzen INTEGER DEFAULT 0
-)
-`).run();
 
-// Tabelle für Historie
-db.prepare(`
-CREATE TABLE IF NOT EXISTS history (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id TEXT,
-    amount INTEGER,
-    reason TEXT,
-    moderator TEXT,
-    date TEXT
-)
-`).run();
+const userSchema = new mongoose.Schema({
+    id: {
+        type: String,
+        unique: true,
+        required: true
+    },
+    name: String,
+    essenzen: {
+        type: Number,
+        default: 0
+    }
+});
 
-module.exports = db;
+
+const historySchema = new mongoose.Schema({
+    user_id: String,
+    amount: Number,
+    reason: String,
+    moderator: String,
+    date: String
+});
+
+
+const User = mongoose.model("User", userSchema);
+const History = mongoose.model("History", historySchema);
+
+
+module.exports = {
+    User,
+    History
+};
