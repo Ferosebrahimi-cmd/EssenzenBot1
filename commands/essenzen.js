@@ -1,6 +1,5 @@
 const {
     SlashCommandBuilder,
-    PermissionFlagsBits,
     EmbedBuilder
 } = require("discord.js");
 
@@ -12,27 +11,34 @@ const EMBED_COLOR = 0x8B0000;
 module.exports = {
 
     data: new SlashCommandBuilder()
+
         .setName("essenzen")
         .setDescription("Verwaltung der Roten Essenzen")
 
 
-        // 🩸 ADD
+        // =====================
+        // ADD
+        // =====================
+
         .addSubcommand(sub =>
             sub
                 .setName("add")
                 .setDescription("Gibt einem Nutzer Rote Essenzen")
+
                 .addUserOption(option =>
                     option
                         .setName("nutzer")
                         .setDescription("Nutzer auswählen")
                         .setRequired(true)
                 )
+
                 .addIntegerOption(option =>
                     option
                         .setName("anzahl")
                         .setDescription("Anzahl der Essenzen")
                         .setRequired(true)
                 )
+
                 .addAttachmentOption(option =>
                     option
                         .setName("bild")
@@ -42,23 +48,29 @@ module.exports = {
         )
 
 
-        // 🩸 REMOVE
+        // =====================
+        // REMOVE
+        // =====================
+
         .addSubcommand(sub =>
             sub
                 .setName("remove")
                 .setDescription("Entfernt Rote Essenzen")
+
                 .addUserOption(option =>
                     option
                         .setName("nutzer")
                         .setDescription("Nutzer auswählen")
                         .setRequired(true)
                 )
+
                 .addIntegerOption(option =>
                     option
                         .setName("anzahl")
                         .setDescription("Anzahl der Essenzen")
                         .setRequired(true)
                 )
+
                 .addStringOption(option =>
                     option
                         .setName("grund")
@@ -68,11 +80,15 @@ module.exports = {
         )
 
 
-        // 💎 KONTO
+        // =====================
+        // KONTO
+        // =====================
+
         .addSubcommand(sub =>
             sub
                 .setName("konto")
-                .setDescription("Zeigt den Essenzen Kontostand")
+                .setDescription("Zeigt den Kontostand")
+
                 .addUserOption(option =>
                     option
                         .setName("nutzer")
@@ -82,19 +98,26 @@ module.exports = {
         )
 
 
-        // 👑 TOP
+        // =====================
+        // TOP
+        // =====================
+
         .addSubcommand(sub =>
             sub
                 .setName("top")
-                .setDescription("Zeigt die Essenzen Rangliste")
+                .setDescription("Zeigt die Rangliste")
         )
 
 
-        // 📜 HISTORIE
+        // =====================
+        // HISTORIE
+        // =====================
+
         .addSubcommand(sub =>
             sub
                 .setName("historie")
-                .setDescription("Zeigt den Essenzen Verlauf")
+                .setDescription("Zeigt den Verlauf")
+
                 .addUserOption(option =>
                     option
                         .setName("nutzer")
@@ -104,7 +127,10 @@ module.exports = {
         )
 
 
-        // 🔄 RESET
+        // =====================
+        // RESET
+        // =====================
+
         .addSubcommand(sub =>
             sub
                 .setName("reset")
@@ -116,13 +142,8 @@ module.exports = {
     async execute(interaction) {
 
 
-        const command = interaction.options.getSubcommand();
-
-
-        const hasPermission =
-            interaction.member.permissions.has(
-                PermissionFlagsBits.ManageGuild
-            );
+        const command =
+            interaction.options.getSubcommand();
 
 
 
@@ -130,37 +151,47 @@ module.exports = {
         // KONTO
         // =====================
 
-        if (command === "konto") {
+        if(command === "konto"){
 
-            const user = interaction.options.getUser("nutzer");
+
+            const user =
+                interaction.options.getUser("nutzer");
+
 
             const member =
                 await interaction.guild.members.fetch(user.id);
 
 
+
             const konto =
                 await db.User.findOne({
-                    id: user.id
+                    id:user.id
                 });
 
 
 
-            const embed = new EmbedBuilder()
+            const embed =
+                new EmbedBuilder()
+
                 .setColor(EMBED_COLOR)
+
                 .setTitle("💎 Rote Essenzen Konto")
+
                 .addFields(
+
                     {
-                        name: "👤 Nutzer",
-                        value: member.displayName,
-                        inline: true
+                        name:"👤 Nutzer",
+                        value:member.displayName
                     },
+
                     {
-                        name: "💎 Essenzen",
+                        name:"💎 Essenzen",
                         value:
-                            `${konto ? konto.essenzen : 0} Essenzen`,
-                        inline: true
+                        `${konto ? konto.essenzen : 0} Essenzen`
                     }
+
                 );
+
 
 
             return interaction.reply({
@@ -171,11 +202,13 @@ module.exports = {
 
 
 
+
+
         // =====================
         // TOP
         // =====================
 
-        if (command === "top") {
+        if(command === "top"){
 
 
             const users =
@@ -187,16 +220,22 @@ module.exports = {
 
 
 
-            if(users.length === 0)
+            if(users.length === 0){
+
                 return interaction.reply(
                     "👑 Keine Daten vorhanden."
                 );
 
+            }
 
-            let ranking="";
+
+
+            let ranking = "";
+
 
 
             users.forEach((user,index)=>{
+
 
                 let platz =
                     index === 0 ? "🥇" :
@@ -205,8 +244,10 @@ module.exports = {
                     `${index+1}.`;
 
 
+
                 ranking +=
                 `${platz} **${user.name}** - ${user.essenzen} Essenzen\n`;
+
 
             });
 
@@ -214,8 +255,11 @@ module.exports = {
 
             const embed =
                 new EmbedBuilder()
+
                 .setColor(EMBED_COLOR)
+
                 .setTitle("👑 Rote Essenzen Rangliste")
+
                 .setDescription(ranking);
 
 
@@ -224,7 +268,9 @@ module.exports = {
                 embeds:[embed]
             });
 
+
         }
+
 
 
 
@@ -233,10 +279,12 @@ module.exports = {
         // HISTORIE
         // =====================
 
-        if(command==="historie"){
+        if(command === "historie"){
+
 
             const user =
                 interaction.options.getUser("nutzer");
+
 
 
             const member =
@@ -255,20 +303,26 @@ module.exports = {
 
 
 
-            if(history.length===0)
+            if(history.length === 0){
+
                 return interaction.reply(
                     "📜 Keine Historie vorhanden."
                 );
 
+            }
 
 
-            let text="";
+
+            let text = "";
+
 
 
             history.forEach(entry=>{
 
                 text +=
-                `${entry.amount > 0 ? "🩸➕":"🩸➖"} **${entry.amount} Essenzen**\n`+
+
+                `${entry.amount > 0 ? "🩸➕":"🩸➖"} ${entry.amount} Essenzen\n`+
+
                 `📌 ${entry.reason}\n\n`;
 
             });
@@ -277,8 +331,11 @@ module.exports = {
 
             const embed =
                 new EmbedBuilder()
+
                 .setColor(EMBED_COLOR)
+
                 .setTitle("📜 Essenzen Historie")
+
                 .setDescription(
                     `👤 ${member.displayName}\n\n${text}`
                 );
@@ -289,31 +346,13 @@ module.exports = {
                 embeds:[embed]
             });
 
-        }
-
-
-
-
-
-        // RECHTE
-
-        if(!hasPermission){
-
-            return interaction.reply({
-                content:"❌ Keine Berechtigung.",
-                ephemeral:true
-            });
 
         }
-
-
-
-
         // =====================
         // ADD
         // =====================
 
-        if(command==="add"){
+        if(command === "add"){
 
 
             const user =
@@ -343,22 +382,29 @@ module.exports = {
 
             if(konto){
 
+
                 konto.essenzen += amount;
+
                 konto.name = member.displayName;
+
 
                 await konto.save();
 
-            }else{
+
+            } else {
 
 
                 konto =
                 await db.User.create({
 
                     id:user.id,
+
                     name:member.displayName,
+
                     essenzen:amount
 
                 });
+
 
             }
 
@@ -367,47 +413,59 @@ module.exports = {
             await db.History.create({
 
                 user_id:user.id,
+
                 amount:amount,
+
                 reason:image.url,
+
                 moderator:interaction.user.username,
+
                 date:new Date().toLocaleString("de-DE")
 
             });
 
 
 
+
             const embed =
-                new EmbedBuilder()
-                .setColor(EMBED_COLOR)
-                .setTitle("🩸➕ Essenzen hinzugefügt")
-                .addFields(
 
-                    {
-                        name:"👤 Nutzer",
-                        value:member.displayName
-                    },
+            new EmbedBuilder()
 
-                    {
-                        name:"💎 Menge",
-                        value:`+${amount} Essenzen`
-                    },
+            .setColor(EMBED_COLOR)
 
-                    {
-                        name:"📸 Beweis",
-                        value:`[Bild öffnen](${image.url})`
-                    },
+            .setTitle("🩸➕ Essenzen hinzugefügt")
 
-                    {
-                        name:"💎 Kontostand",
-                        value:`${konto.essenzen} Essenzen`
-                    }
 
-                );
+            .addFields(
+
+                {
+                    name:"👤 Nutzer",
+                    value:member.displayName
+                },
+
+                {
+                    name:"💎 Menge",
+                    value:`+${amount} Essenzen`
+                },
+
+                {
+                    name:"📸 Beweis",
+                    value:`[Bild öffnen](${image.url})`
+                },
+
+                {
+                    name:"💎 Neuer Kontostand",
+                    value:`${konto.essenzen} Essenzen`
+                }
+
+            );
 
 
 
             return interaction.reply({
+
                 embeds:[embed]
+
             });
 
 
@@ -417,19 +475,24 @@ module.exports = {
 
 
 
+
+
         // =====================
         // REMOVE
         // =====================
 
-        if(command==="remove"){
+        if(command === "remove"){
+
 
 
             const user =
                 interaction.options.getUser("nutzer");
 
 
+
             const amount =
                 interaction.options.getInteger("anzahl");
+
 
 
             const reason =
@@ -442,6 +505,7 @@ module.exports = {
 
 
 
+
             const konto =
                 await db.User.findOne({
                     id:user.id
@@ -449,48 +513,100 @@ module.exports = {
 
 
 
-            if(!konto)
+
+            if(!konto){
+
                 return interaction.reply(
                     "❌ Nutzer besitzt keine Essenzen."
                 );
 
+            }
+
+
 
 
             konto.essenzen -= amount;
+
             konto.name = member.displayName;
+
 
 
             await konto.save();
 
 
 
+
+
             await db.History.create({
 
                 user_id:user.id,
+
                 amount:-amount,
+
                 reason:reason,
+
                 moderator:interaction.user.username,
+
                 date:new Date().toLocaleString("de-DE")
 
             });
 
 
 
+
+
+
             const embed =
-                new EmbedBuilder()
-                .setColor(EMBED_COLOR)
-                .setTitle("🩸➖ Essenzen entfernt")
-                .setDescription(
-                    `${amount} Essenzen wurden entfernt.\nGrund: ${reason}`
-                );
+
+            new EmbedBuilder()
+
+            .setColor(EMBED_COLOR)
+
+            .setTitle("🩸➖ Essenzen entfernt")
+
+
+            .addFields(
+
+                {
+                    name:"👤 Nutzer",
+                    value:member.displayName
+                },
+
+
+                {
+                    name:"💎 Menge",
+                    value:`-${amount} Essenzen`
+                },
+
+
+                {
+                    name:"📌 Grund",
+                    value:reason
+                },
+
+
+                {
+                    name:"💎 Neuer Kontostand",
+                    value:`${konto.essenzen} Essenzen`
+                }
+
+
+            );
+
+
 
 
             return interaction.reply({
+
                 embeds:[embed]
+
             });
 
 
         }
+
+
+
 
 
 
@@ -500,25 +616,34 @@ module.exports = {
         // RESET
         // =====================
 
-        if(command==="reset"){
+        if(command === "reset"){
+
 
 
             await db.User.updateMany(
+
                 {},
+
                 {
                     essenzen:0
                 }
+
             );
 
 
+
             return interaction.reply(
+
                 "🔄 Alle Essenzen wurden zurückgesetzt."
+
             );
 
 
         }
 
 
+
     }
+
 };
 
