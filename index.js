@@ -1,48 +1,34 @@
 require("dotenv").config();
 
-const fs = require("fs");
-const path = require("path");
+const express = require("express");
+const { Client, GatewayIntentBits } = require("discord.js");
 
-const { Client, GatewayIntentBits, Collection } = require("discord.js");
+const app = express();
 
-const client = new Client({
-    intents: [GatewayIntentBits.Guilds],
+const PORT = process.env.PORT || 3000;
+
+// Kleiner Webserver für Render
+app.get("/", (req, res) => {
+    res.send("EssenzenBot läuft!");
 });
 
-client.commands = new Collection();
+app.listen(PORT, () => {
+    console.log(`Webserver läuft auf Port ${PORT}`);
+});
 
-const commandsPath = path.join(__dirname, "commands");
-const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith(".js"));
 
-for (const file of commandFiles) {
-    const filePath = path.join(commandsPath, file);
-    const command = require(filePath);
+// Discord Bot
 
-    client.commands.set(command.data.name, command);
-}
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds
+    ],
+});
+
 
 client.once("clientReady", () => {
     console.log(`✅ ${client.user.tag} ist online!`);
 });
 
-client.on("interactionCreate", async interaction => {
-
-    if (!interaction.isChatInputCommand()) return;
-
-    const command = client.commands.get(interaction.commandName);
-
-    if (!command) return;
-
-    try {
-        await command.execute(interaction);
-    } catch (error) {
-        console.error(error);
-
-        await interaction.reply({
-            content: "❌ Es ist ein Fehler aufgetreten.",
-            ephemeral: true
-        });
-    }
-});
 
 client.login(process.env.TOKEN);
