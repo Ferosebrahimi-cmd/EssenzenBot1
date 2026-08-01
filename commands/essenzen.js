@@ -1,7 +1,6 @@
 const {
     SlashCommandBuilder,
-    EmbedBuilder,
-    PermissionFlagsBits
+    EmbedBuilder
 } = require("discord.js");
 
 const { User } = require("../database/database");
@@ -13,6 +12,7 @@ module.exports = {
 
         .setName("essenzen")
         .setDescription("Essenzen Verwaltung")
+
 
         .addSubcommand(sub =>
             sub
@@ -34,7 +34,7 @@ module.exports = {
                 .addIntegerOption(option =>
                     option
                         .setName("menge")
-                        .setDescription("Anzahl Essenzen")
+                        .setDescription("Menge")
                         .setRequired(true)
                 )
         )
@@ -53,10 +53,11 @@ module.exports = {
                 .addIntegerOption(option =>
                     option
                         .setName("menge")
-                        .setDescription("Anzahl Essenzen")
+                        .setDescription("Menge")
                         .setRequired(true)
                 )
         ),
+
 
 
     async execute(interaction) {
@@ -66,6 +67,7 @@ module.exports = {
             interaction.options.getSubcommand();
 
 
+
         // =========================
         // Rangliste
         // =========================
@@ -73,43 +75,91 @@ module.exports = {
         if (sub === "rangliste") {
 
 
-            const users = await User.find()
-                .sort({
-                    essenzen: -1
-                })
-                .limit(10);
+            const users =
+                await User.find()
+                    .sort({
+                        essenzen: -1
+                    })
+                    .limit(10);
+
 
 
             if (!users.length) {
 
                 return interaction.reply({
-                    content: "Keine Daten vorhanden.",
+
+                    content:
+                        "Keine Daten vorhanden.",
+
                     ephemeral: true
+
                 });
 
             }
 
 
-            let text = "";
+
+            let liste = "";
 
 
-            users.forEach((user, index) => {
 
-                text +=
-                    `${index + 1}. ${user.nickname || "Unbekannt"} - ${user.essenzen} Essenzen\n`;
-
-            });
+            for (let i = 0; i < users.length; i++) {
 
 
-            const embed = new EmbedBuilder()
+                let name =
+                    users[i].nickname;
 
-                .setTitle("Essenzen Rangliste")
 
-                .setDescription(text);
+
+                try {
+
+                    const member =
+                        await interaction.guild.members.fetch(
+                            users[i].id
+                        );
+
+
+                    name =
+                        member.nickname ||
+                        member.user.username;
+
+
+                } catch {
+
+                    name =
+                        users[i].nickname ||
+                        "Unbekannt";
+
+                }
+
+
+
+                liste +=
+                    `${i + 1}. ${name} - ${users[i].essenzen} Essenzen\n`;
+
+            }
+
+
+
+            const embed =
+                new EmbedBuilder()
+
+                    .setTitle(
+                        "Essenzen Rangliste"
+                    )
+
+                    .setDescription(
+                        liste
+                    );
+
 
 
             return interaction.reply({
-                embeds: [embed]
+
+                embeds: [
+                    embed
+                ]
+
             });
 
 
@@ -121,15 +171,15 @@ module.exports = {
         // Leader prüfen
         // =========================
 
-        const leaderRole =
-            "Leader";
+        const hatLeader =
+            interaction.member.roles.cache.some(
+                role =>
+                    role.name === "Leader"
+            );
 
 
-        if (
-            !interaction.member.roles.cache.some(
-                role => role.name === leaderRole
-            )
-        ) {
+
+        if (!hatLeader) {
 
 
             return interaction.reply({
@@ -150,32 +200,59 @@ module.exports = {
             interaction.options.getUser("user");
 
 
+
         const menge =
             interaction.options.getInteger("menge");
 
 
 
+        const member =
+            await interaction.guild.members.fetch(
+                target.id
+            );
+
+
+
+        const nickname =
+            member.nickname ||
+            member.user.username;
+
+
+
         let user =
             await User.findOne({
+
                 id: target.id
+
             });
 
 
 
         if (!user) {
 
+
             user = new User({
 
-                id: target.id,
+                id:
+                    target.id,
 
                 nickname:
-                    target.username,
+                    nickname,
 
-                essenzen: 0
+                essenzen:
+                    0
 
             });
 
+
         }
+
+
+
+        // immer aktuellen Nickname speichern
+
+        user.nickname =
+            nickname;
 
 
 
@@ -223,4 +300,3 @@ module.exports = {
     }
 
 };
-
