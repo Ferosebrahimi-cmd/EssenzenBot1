@@ -17,7 +17,7 @@ module.exports = {
         .addSubcommand(sub =>
             sub
                 .setName("rangliste")
-                .setDescription("Zeigt die Essenzen Rangliste")
+                .setDescription("Zeigt alle Essenzen")
         )
 
 
@@ -43,7 +43,7 @@ module.exports = {
         .addSubcommand(sub =>
             sub
                 .setName("entfernen")
-                .setDescription("Entfernt Essenzen von einem Spieler")
+                .setDescription("Entfernt Essenzen")
                 .addUserOption(option =>
                     option
                         .setName("user")
@@ -69,7 +69,7 @@ module.exports = {
 
 
         // =========================
-        // Rangliste
+        // Rangliste alle Spieler
         // =========================
 
         if (sub === "rangliste") {
@@ -79,8 +79,7 @@ module.exports = {
                 await User.find()
                     .sort({
                         essenzen: -1
-                    })
-                    .limit(10);
+                    });
 
 
 
@@ -107,7 +106,7 @@ module.exports = {
 
 
                 let name =
-                    users[i].nickname;
+                    users[i].nickname || "Unbekannt";
 
 
 
@@ -124,13 +123,7 @@ module.exports = {
                         member.user.username;
 
 
-                } catch {
-
-                    name =
-                        users[i].nickname ||
-                        "Unbekannt";
-
-                }
+                } catch {}
 
 
 
@@ -162,8 +155,8 @@ module.exports = {
 
             });
 
-
         }
+
 
 
 
@@ -171,7 +164,7 @@ module.exports = {
         // Leader prüfen
         // =========================
 
-        const hatLeader =
+        const leader =
             interaction.member.roles.cache.some(
                 role =>
                     role.name === "Leader"
@@ -179,8 +172,7 @@ module.exports = {
 
 
 
-        if (!hatLeader) {
-
+        if (!leader) {
 
             return interaction.reply({
 
@@ -190,7 +182,6 @@ module.exports = {
                 ephemeral: true
 
             });
-
 
         }
 
@@ -244,12 +235,9 @@ module.exports = {
 
             });
 
-
         }
 
 
-
-        // immer aktuellen Nickname speichern
 
         user.nickname =
             nickname;
@@ -258,16 +246,13 @@ module.exports = {
 
         if (sub === "geben") {
 
-
             user.essenzen += menge;
-
 
         }
 
 
 
         if (sub === "entfernen") {
-
 
             user.essenzen -= menge;
 
@@ -277,7 +262,6 @@ module.exports = {
                 user.essenzen = 0;
 
             }
-
 
         }
 
