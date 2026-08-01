@@ -1,4 +1,3 @@
-
 console.log("📩 messageCreate Datei geladen");
 
 const { User, History } = require("../database/database");
@@ -9,73 +8,61 @@ module.exports = {
 
     async execute(message) {
 
-        // Bots ignorieren
+        console.log("💬 Nachricht erkannt:", message.content);
+
         if (message.author.bot) return;
 
-
-        // Erkennt: +20 oder +20 Essenzen
         const match = message.content.match(/^\+(\d+)(?:\s*essenzen)?$/i);
+
+        console.log("🔎 Treffer:", match);
 
         if (!match) return;
 
 
         const menge = Number(match[1]);
 
+        console.log("➕ Essenzen Menge:", menge);
 
-        try {
 
-            let user = await User.findOne({
-                id: message.author.id
+        let user = await User.findOne({
+            id: message.author.id
+        });
+
+
+        if (!user) {
+
+            user = new User({
+                id: message.author.id,
+                nickname: message.member?.nickname || message.author.username,
+                essenzen: 0
             });
-
-
-            // Neuer User
-            if (!user) {
-
-                user = new User({
-                    id: message.author.id,
-                    nickname: message.member?.nickname || message.author.username,
-                    essenzen: 0
-                });
-
-            }
-
-
-            // Nickname aktualisieren
-            user.nickname =
-                message.member?.nickname || message.author.username;
-
-
-            // Essenzen hinzufügen
-            user.essenzen += menge;
-
-
-            await user.save();
-
-
-            // Verlauf speichern
-            await History.create({
-
-                user_id: message.author.id,
-
-                menge: menge,
-
-                typ: "Chat",
-
-                ausgefuehrt_von: message.author.id
-
-            });
-
-
-            // Reaktion setzen
-            await message.react("✅");
-
-
-        } catch (error) {
-
-            console.error("❌ Fehler bei Essenzen:", error);
 
         }
+
+
+        user.nickname =
+            message.member?.nickname || message.author.username;
+
+
+        user.essenzen += menge;
+
+
+        await user.save();
+
+
+        await History.create({
+
+            user_id: message.author.id,
+            menge: menge,
+            typ: "Chat",
+            ausgefuehrt_von: message.author.id
+
+        });
+
+
+        await message.react("✅");
+
+        console.log("✅ Essenzen gespeichert");
 
     }
 
