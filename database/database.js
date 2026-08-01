@@ -9,13 +9,19 @@ mongoose.connect(process.env.MONGO_URI)
     });
 
 
+// User Daten
 const userSchema = new mongoose.Schema({
     id: {
         type: String,
         unique: true,
         required: true
     },
-    name: String,
+
+    nickname: {
+        type: String,
+        default: "Unbekannt"
+    },
+
     essenzen: {
         type: Number,
         default: 0
@@ -23,12 +29,33 @@ const userSchema = new mongoose.Schema({
 });
 
 
+// Essenzen Verlauf
 const historySchema = new mongoose.Schema({
-    user_id: String,
-    amount: Number,
-    reason: String,
-    moderator: String,
-    date: String
+
+    user_id: {
+        type: String,
+        required: true
+    },
+
+    menge: {
+        type: Number,
+        required: true
+    },
+
+    typ: {
+        type: String,
+        required: true
+    },
+
+    ausgefuehrt_von: {
+        type: String,
+        default: "System"
+    },
+
+    datum: {
+        type: Date,
+        default: Date.now
+    }
 });
 
 
