@@ -24,7 +24,7 @@ module.exports = {
         .addSubcommand(sub =>
             sub
                 .setName("geben")
-                .setDescription("Gibt einem Spieler Essenzen")
+                .setDescription("Gibt Essenzen")
                 .addUserOption(option =>
                     option
                         .setName("user")
@@ -69,10 +69,14 @@ module.exports = {
 
 
         // =========================
-        // Rangliste alle Spieler
+        // Rangliste
         // =========================
 
         if (sub === "rangliste") {
+
+
+            await interaction.deferReply();
+
 
 
             const users =
@@ -85,14 +89,9 @@ module.exports = {
 
             if (!users.length) {
 
-                return interaction.reply({
-
-                    content:
-                        "Keine Daten vorhanden.",
-
-                    ephemeral: true
-
-                });
+                return interaction.editReply(
+                    "Keine Daten vorhanden."
+                );
 
             }
 
@@ -130,6 +129,16 @@ module.exports = {
                 liste +=
                     `${i + 1}. ${name} - ${users[i].essenzen} Essenzen\n`;
 
+
+                // Discord Embed Limit
+                if (liste.length >= 3800) {
+
+                    liste += "\nWeitere Spieler werden nicht angezeigt.";
+
+                    break;
+
+                }
+
             }
 
 
@@ -147,7 +156,7 @@ module.exports = {
 
 
 
-            return interaction.reply({
+            return interaction.editReply({
 
                 embeds: [
                     embed
@@ -155,16 +164,16 @@ module.exports = {
 
             });
 
+
         }
 
 
 
-
         // =========================
-        // Leader prüfen
+        // Leader Rechte
         // =========================
 
-        const leader =
+        const istLeader =
             interaction.member.roles.cache.some(
                 role =>
                     role.name === "Leader"
@@ -172,7 +181,8 @@ module.exports = {
 
 
 
-        if (!leader) {
+        if (!istLeader) {
+
 
             return interaction.reply({
 
@@ -182,6 +192,7 @@ module.exports = {
                 ephemeral: true
 
             });
+
 
         }
 
@@ -234,6 +245,7 @@ module.exports = {
                     0
 
             });
+
 
         }
 
