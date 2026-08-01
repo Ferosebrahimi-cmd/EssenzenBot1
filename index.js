@@ -42,13 +42,9 @@ app.listen(PORT, () => {
 const client = new Client({
 
     intents: [
-
         GatewayIntentBits.Guilds,
-
         GatewayIntentBits.GuildMessages,
-
         GatewayIntentBits.MessageContent
-
     ]
 
 });
@@ -65,7 +61,6 @@ const commandsPath = path.join(__dirname, "commands");
 
 if (fs.existsSync(commandsPath)) {
 
-
     const commandFiles = fs
         .readdirSync(commandsPath)
         .filter(file => file.endsWith(".js"));
@@ -73,14 +68,12 @@ if (fs.existsSync(commandsPath)) {
 
     for (const file of commandFiles) {
 
-
         const command = require(
             path.join(commandsPath, file)
         );
 
 
         if (command.data && command.execute) {
-
 
             client.commands.set(
                 command.data.name,
@@ -91,7 +84,6 @@ if (fs.existsSync(commandsPath)) {
             console.log(
                 `✅ Command geladen: ${command.data.name}`
             );
-
 
         }
 
@@ -107,14 +99,13 @@ if (fs.existsSync(commandsPath)) {
 const eventsPath = path.join(__dirname, "events");
 
 
-console.log("🔍 Events Pfad:");
-console.log(eventsPath);
+console.log(
+    "🔍 Suche Events:",
+    eventsPath
+);
 
 
 if (fs.existsSync(eventsPath)) {
-
-
-    console.log("✅ Events Ordner gefunden");
 
 
     const eventFiles = fs
@@ -123,7 +114,7 @@ if (fs.existsSync(eventsPath)) {
 
 
     console.log(
-        "📁 Events gefunden:",
+        "📁 Events:",
         eventFiles
     );
 
@@ -160,7 +151,7 @@ if (fs.existsSync(eventsPath)) {
 
 
     console.log(
-        "❌ Events Ordner nicht gefunden"
+        "❌ Kein Events Ordner gefunden"
     );
 
 
@@ -174,6 +165,20 @@ if (fs.existsSync(eventsPath)) {
 client.once("ready", () => {
 
 
+    client.user.setPresence({
+
+        status: "online",
+
+        activities: [
+            {
+                name: "Essenzen verwalten",
+                type: 0
+            }
+        ]
+
+    });
+
+
     console.log("==============================");
 
     console.log(
@@ -183,6 +188,11 @@ client.once("ready", () => {
 
     console.log(
         `📡 Server: ${client.guilds.cache.size}`
+    );
+
+
+    console.log(
+        "🟢 Status: Online"
     );
 
 
@@ -234,34 +244,22 @@ client.on(
             console.error(error);
 
 
+            const antwort = {
+                content: "❌ Fehler beim Ausführen.",
+                ephemeral: true
+            };
+
+
             if (
                 interaction.replied ||
                 interaction.deferred
             ) {
 
-
-                await interaction.followUp({
-
-                    content:
-                        "❌ Fehler beim Ausführen.",
-
-                    ephemeral: true
-
-                });
-
+                await interaction.followUp(antwort);
 
             } else {
 
-
-                await interaction.reply({
-
-                    content:
-                        "❌ Fehler beim Ausführen.",
-
-                    ephemeral: true
-
-                });
-
+                await interaction.reply(antwort);
 
             }
 
@@ -288,7 +286,9 @@ client.login(process.env.TOKEN)
     .catch(error => {
 
         console.error(
+            "❌ Discord Login Fehler:",
             error
         );
 
     });
+    
