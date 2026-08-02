@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const express = require("express");
+
 const {
     Client,
     GatewayIntentBits,
@@ -9,6 +10,9 @@ const {
 
 const fs = require("fs");
 const path = require("path");
+
+const { startScheduler } = require("./aufstellung/scheduler");
+const aufstellungReaction = require("./aufstellung/reactions");
 
 
 // =========================
@@ -26,12 +30,20 @@ const app = express();
 
 const PORT = process.env.PORT || 3000;
 
+
 app.get("/", (req, res) => {
+
     res.send("✅ EssenzenBot läuft!");
+
 });
 
+
 app.listen(PORT, () => {
-    console.log(`🌐 Webserver läuft auf Port ${PORT}`);
+
+    console.log(
+        `🌐 Webserver läuft auf Port ${PORT}`
+    );
+
 });
 
 
@@ -42,9 +54,17 @@ app.listen(PORT, () => {
 const client = new Client({
 
     intents: [
+
         GatewayIntentBits.Guilds,
+
         GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent
+
+        GatewayIntentBits.MessageContent,
+
+        GatewayIntentBits.GuildMembers,
+
+        GatewayIntentBits.GuildMessageReactions
+
     ]
 
 });
@@ -56,24 +76,32 @@ const client = new Client({
 
 client.commands = new Collection();
 
-const commandsPath = path.join(__dirname, "commands");
+
+const commandsPath =
+    path.join(__dirname, "commands");
 
 
 if (fs.existsSync(commandsPath)) {
 
-    const commandFiles = fs
-        .readdirSync(commandsPath)
-        .filter(file => file.endsWith(".js"));
+
+    const commandFiles =
+        fs.readdirSync(commandsPath)
+        .filter(file =>
+            file.endsWith(".js")
+        );
 
 
     for (const file of commandFiles) {
 
-        const command = require(
-            path.join(commandsPath, file)
-        );
+
+        const command =
+            require(
+                path.join(commandsPath, file)
+            );
 
 
         if (command.data && command.execute) {
+
 
             client.commands.set(
                 command.data.name,
@@ -85,9 +113,12 @@ if (fs.existsSync(commandsPath)) {
                 `✅ Command geladen: ${command.data.name}`
             );
 
+
         }
 
+
     }
+
 
 }
 
@@ -96,7 +127,8 @@ if (fs.existsSync(commandsPath)) {
 // Events laden
 // =========================
 
-const eventsPath = path.join(__dirname, "events");
+const eventsPath =
+    path.join(__dirname, "events");
 
 
 console.log(
@@ -108,9 +140,11 @@ console.log(
 if (fs.existsSync(eventsPath)) {
 
 
-    const eventFiles = fs
-        .readdirSync(eventsPath)
-        .filter(file => file.endsWith(".js"));
+    const eventFiles =
+        fs.readdirSync(eventsPath)
+        .filter(file =>
+            file.endsWith(".js")
+        );
 
 
     console.log(
@@ -122,9 +156,10 @@ if (fs.existsSync(eventsPath)) {
     for (const file of eventFiles) {
 
 
-        const event = require(
-            path.join(eventsPath, file)
-        );
+        const event =
+            require(
+                path.join(eventsPath, file)
+            );
 
 
         if (event.name && event.execute) {
@@ -133,7 +168,10 @@ if (fs.existsSync(eventsPath)) {
             client.on(
                 event.name,
                 (...args) =>
-                    event.execute(...args, client)
+                    event.execute(
+                        ...args,
+                        client
+                    )
             );
 
 
@@ -144,18 +182,34 @@ if (fs.existsSync(eventsPath)) {
 
         }
 
+
     }
 
 
-} else {
-
-
-    console.log(
-        "❌ Kein Events Ordner gefunden"
-    );
-
-
 }
+
+
+// =========================
+// Aufstellung Reaktionen
+// =========================
+
+client.on(
+
+    aufstellungReaction.name,
+
+    (...args) =>
+        aufstellungReaction.execute(
+            ...args,
+            client
+        )
+
+);
+
+
+console.log(
+    "📋 Aufstellung Reaktionen geladen"
+);
+
 
 
 // =========================
@@ -167,19 +221,29 @@ client.once("ready", () => {
 
     client.user.setPresence({
 
+
         status: "online",
 
+
         activities: [
+
             {
+
                 name: "Essenzen verwalten",
+
                 type: 0
+
             }
+
         ]
+
 
     });
 
 
+
     console.log("==============================");
+
 
     console.log(
         `🤖 Bot: ${client.user.tag}`
@@ -201,10 +265,21 @@ client.once("ready", () => {
     );
 
 
+    // Aufstellung starten
+
+    startScheduler(client);
+
+
+    console.log(
+        "⏰ Aufstellung Scheduler gestartet"
+    );
+
+
     console.log("==============================");
 
 
 });
+
 
 
 // =========================
@@ -220,14 +295,17 @@ client.on(
             return;
 
 
+
         const command =
             client.commands.get(
                 interaction.commandName
             );
 
 
+
         if (!command)
             return;
+
 
 
         try {
@@ -238,16 +316,22 @@ client.on(
             );
 
 
-        } catch (error) {
+        } catch(error) {
 
 
             console.error(error);
 
 
+
             const antwort = {
-                content: "❌ Fehler beim Ausführen.",
+
+                content:
+                    "❌ Fehler beim Ausführen.",
+
                 ephemeral: true
+
             };
+
 
 
             if (
@@ -255,11 +339,19 @@ client.on(
                 interaction.deferred
             ) {
 
-                await interaction.followUp(antwort);
+
+                await interaction.followUp(
+                    antwort
+                );
+
 
             } else {
 
-                await interaction.reply(antwort);
+
+                await interaction.reply(
+                    antwort
+                );
+
 
             }
 
@@ -268,7 +360,9 @@ client.on(
 
 
     }
+
 );
+
 
 
 // =========================
@@ -276,19 +370,24 @@ client.on(
 // =========================
 
 client.login(process.env.TOKEN)
-    .then(() => {
 
-        console.log(
-            "🔑 Discord Login erfolgreich"
-        );
+.then(() => {
 
-    })
-    .catch(error => {
 
-        console.error(
-            "❌ Discord Login Fehler:",
-            error
-        );
+    console.log(
+        "🔑 Discord Login erfolgreich"
+    );
 
-    });
-    
+
+})
+
+.catch(error => {
+
+
+    console.error(
+        "❌ Discord Login Fehler:",
+        error
+    );
+
+
+});
