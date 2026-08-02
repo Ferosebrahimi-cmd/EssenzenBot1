@@ -4,7 +4,8 @@ const express = require("express");
 const {
     Client,
     GatewayIntentBits,
-    Collection
+    Collection,
+    Partials
 } = require("discord.js");
 
 const fs = require("fs");
@@ -50,11 +51,6 @@ app.listen(PORT, () => {
 // Discord Bot
 // =========================
 
-const {
-    Partials
-} = require("discord.js");
-
-
 const client = new Client({
 
     intents: [
@@ -84,6 +80,33 @@ const client = new Client({
 });
 
 
+// =========================
+// Reaction Test
+// =========================
+
+client.on("messageReactionAdd", (reaction, user) => {
+
+    console.log(
+        "🔥 TEST REACTION:",
+        user.tag,
+        reaction.emoji.name
+    );
+
+});
+
+
+client.on("raw", packet => {
+
+    if (packet.t === "MESSAGE_REACTION_ADD") {
+
+        console.log(
+            "🔥 RAW REACTION EVENT ERHALTEN"
+        );
+
+    }
+
+});
+
 
 // =========================
 // Commands laden
@@ -99,7 +122,6 @@ const commandsPath = path.join(
 
 if (fs.existsSync(commandsPath)) {
 
-
     const commandFiles = fs
         .readdirSync(commandsPath)
         .filter(file => file.endsWith(".js"));
@@ -107,14 +129,12 @@ if (fs.existsSync(commandsPath)) {
 
     for (const file of commandFiles) {
 
-
         const command = require(
             path.join(commandsPath, file)
         );
 
 
         if (command.data && command.execute) {
-
 
             client.commands.set(
                 command.data.name,
@@ -125,7 +145,6 @@ if (fs.existsSync(commandsPath)) {
             console.log(
                 `✅ Command geladen: ${command.data.name}`
             );
-
 
         }
 
@@ -186,11 +205,9 @@ if (fs.existsSync(eventsPath)) {
                 `📂 Event geladen: ${event.name}`
             );
 
-
         }
 
     }
-
 
 }
 
@@ -246,7 +263,6 @@ client.once("ready", () => {
     console.log("==============================");
 
 
-    // Aufstellung Scheduler starten
     startScheduler(client);
 
 
@@ -277,7 +293,6 @@ client.on(
 
 
         try {
-
 
             await command.execute(
                 interaction
@@ -318,9 +333,7 @@ client.on(
                     antwort
                 );
 
-
             }
-
 
         }
 
@@ -332,20 +345,10 @@ client.on(
 // =========================
 // Discord Login
 // =========================
-client.on("messageReactionAdd", (reaction, user) => {
-
-    console.log(
-        "TEST REACTION:",
-        user.tag,
-        reaction.emoji.name
-    );
-
-});
 
 client.login(
     process.env.TOKEN
 )
-
 .then(() => {
 
     console.log(
@@ -353,7 +356,6 @@ client.login(
     );
 
 })
-
 .catch(error => {
 
     console.error(
