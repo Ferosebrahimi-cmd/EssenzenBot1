@@ -21,6 +21,11 @@ async function execute(reaction, user) {
     );
 
 
+    // Bot ignorieren
+    if (user.bot) return;
+
+
+
     const data = load();
 
 
@@ -31,7 +36,7 @@ async function execute(reaction, user) {
 
 
 
-    // Nur die Aufstellungs-Nachricht bearbeiten
+    // Nur Aufstellungs-Nachricht bearbeiten
 
     if (
         reaction.message.id !== data.messageId
@@ -47,40 +52,73 @@ async function execute(reaction, user) {
 
 
 
+    // Server-Mitglied laden für Nickname
+
+    let member;
+
+    try {
+
+        member =
+            await reaction.message.guild.members.fetch(
+                user.id
+            );
+
+    } catch(error) {
+
+        console.error(
+            "❌ Mitglied konnte nicht geladen werden:",
+            error
+        );
+
+        return;
+
+    }
+
+
+
+    // Server Nickname verwenden
+
     const name =
-        user.globalName ||
-        user.username;
+        member.displayName;
 
 
 
     console.log(
-        "👤 Spieler:",
+        "👤 Server Name:",
         name
     );
 
 
 
-    // Namen aus alter Liste holen
+    // Wenn jemand vorher in keiner Liste war,
+    // automatisch hinzufügen
 
-    const istDabei =
-        data.dabei.includes(name);
+    if (
+        !data.alle.includes(name) &&
+        !data.dabei.includes(name)
+    ) {
+
+        data.alle.push(name);
+
+    }
 
 
 
-    // ✅ Reaktion
+    // ✅ Dabei
 
     if (
         reaction.emoji.name === "✅"
     ) {
 
 
-        if (!istDabei) {
+        if (
+            !data.dabei.includes(name)
+        ) {
 
-            data.dabei.push(
-                name
-            );
+            data.dabei.push(name);
 
         }
+
 
 
         data.alle =
@@ -94,7 +132,7 @@ async function execute(reaction, user) {
 
 
 
-    // ❌ Reaktion
+    // ❌ Nicht dabei
 
     if (
         reaction.emoji.name === "❌"
@@ -107,15 +145,15 @@ async function execute(reaction, user) {
             );
 
 
+
         if (
             !data.alle.includes(name)
         ) {
 
-            data.alle.push(
-                name
-            );
+            data.alle.push(name);
 
         }
+
 
     }
 
@@ -132,7 +170,7 @@ async function execute(reaction, user) {
 
 
 
-    // Nachricht aktualisieren
+    // Embed aktualisieren
 
     try {
 
@@ -147,7 +185,7 @@ async function execute(reaction, user) {
             .setDescription(
 
 `
-📅 **Datum**
+📅 **Datum:** ${new Date().toLocaleDateString("de-DE")}
 
 🕗 **Uhrzeit:** ${config.meetingHour}
 
@@ -158,7 +196,7 @@ async function execute(reaction, user) {
 **✅ Dabei**
 
 ${
-data.dabei.length
+data.dabei.length > 0
 ?
 data.dabei.map(
 n => `✅ ${n}`
@@ -175,7 +213,7 @@ n => `✅ ${n}`
 **❌ Keine Rückmeldung**
 
 ${
-data.alle.length
+data.alle.length > 0
 ?
 data.alle.map(
 n => `❌ ${n}`
@@ -196,7 +234,7 @@ n => `❌ ${n}`
 
         await reaction.message.edit({
 
-            embeds:[
+            embeds: [
                 embed
             ]
 
@@ -205,19 +243,18 @@ n => `❌ ${n}`
 
 
         console.log(
-            "✅ Aufstellung aktualisiert"
+            "✅ Aufstellung aktualisiert:",
+            name
         );
 
 
     }
     catch(error) {
 
-
         console.error(
-            "❌ Update Fehler:",
+            "❌ Embed Update Fehler:",
             error
         );
-
 
     }
 
