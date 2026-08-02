@@ -2,12 +2,16 @@ const {
     EmbedBuilder
 } = require("discord.js");
 
-const config = require("./config");
+
+const config =
+    require("./config");
+
 
 const {
-    load,
-    save
+    save,
+    load
 } = require("./storage");
+
 
 
 async function sendAufstellung(client) {
@@ -19,25 +23,46 @@ async function sendAufstellung(client) {
         );
 
 
+
     const guild =
         channel.guild;
 
 
 
-    // =========================
+    const role =
+        guild.roles.cache.find(
+            r => r.name === config.roleName
+        );
+
+
+
+    if (!role) {
+
+        console.log(
+            "❌ Rolle nicht gefunden"
+        );
+
+        return;
+
+    }
+
+
+
     // Alte Aufstellung löschen
-    // =========================
 
-    const alteDaten = load();
+    const alte =
+        load();
 
 
-    if (alteDaten.messageId) {
+    if (
+        alte.messageId
+    ) {
 
         try {
 
             const alteNachricht =
                 await channel.messages.fetch(
-                    alteDaten.messageId
+                    alte.messageId
                 );
 
 
@@ -49,13 +74,11 @@ async function sendAufstellung(client) {
             );
 
 
-        } catch (error) {
-
+        } catch {
 
             console.log(
-                "ℹ️ Keine alte Aufstellung gefunden"
+                "ℹ️ Keine alte Nachricht gefunden"
             );
-
 
         }
 
@@ -63,10 +86,15 @@ async function sendAufstellung(client) {
 
 
 
-    const role =
-        guild.roles.cache.find(
-            r => r.name === config.roleName
+
+    // Mitglieder holen
+
+    const mitglieder =
+        role.members.map(
+            member =>
+            member.displayName
         );
+
 
 
 
@@ -79,14 +107,6 @@ async function sendAufstellung(client) {
 
 
 
-    const mitglieder =
-        role
-        ? role.members.map(
-            m => m.displayName
-        )
-        : [];
-
-
 
     const embed =
         new EmbedBuilder()
@@ -95,9 +115,11 @@ async function sendAufstellung(client) {
             "🔥 Vatos MC Aufstellung"
         )
 
+
         .setDescription(
 
 `📅 **Datum:** ${datum}
+
 🕗 **Uhrzeit:** ${config.meetingHour}
 
 
@@ -106,7 +128,7 @@ async function sendAufstellung(client) {
 
 **✅ Dabei:**
 
-Niemand
+Noch niemand
 
 
 
@@ -137,13 +159,12 @@ name =>
 
 
 
+
     const message =
         await channel.send({
 
             content:
-            role
-            ? `<@&${role.id}>`
-            : "",
+            `<@&${role.id}>`,
 
             embeds:[
                 embed
@@ -153,16 +174,14 @@ name =>
 
 
 
+
     await message.react("✅");
+
     await message.react("❌");
 
 
 
 
-    // =========================
-    // Neue Aufstellung speichern
-    // Alte Daten überschreiben
-    // =========================
 
     save({
 
@@ -186,7 +205,7 @@ name =>
 
 
     console.log(
-        "🔄 Neue Aufstellung erstellt"
+        "✅ Neue Aufstellung gespeichert"
     );
 
 
@@ -198,5 +217,7 @@ name =>
 
 
 module.exports = {
+
     sendAufstellung
+
 };
