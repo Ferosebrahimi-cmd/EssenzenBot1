@@ -16,7 +16,7 @@ const path = require("path");
 // Aufstellung Modul
 // =========================
 
-const { startScheduler } = require("./Aufstellung/aufstellung/scheduler");
+const { startScheduler } = require("./Aufstellung/scheduler");
 
 
 // =========================
