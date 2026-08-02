@@ -61,11 +61,8 @@ Noch niemand
 
 
 **❌ Keine Rückmeldung:**
-${mitglieder.length
-? mitglieder.map(
-    name => `❌ ${name}`
-).join("\n")
-: "Keine Mitglieder gefunden"}
+Noch keine Auswertung
+
 
 `
 
