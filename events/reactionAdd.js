@@ -3,9 +3,8 @@ const {
 } = require("discord.js");
 
 
-const {
-    execute
-} = require("../Aufstellung/aufstellung/reactions");
+const handleReaction =
+    require("../Aufstellung/reactions");
 
 
 module.exports = {
@@ -15,10 +14,38 @@ module.exports = {
 
     async execute(reaction, user) {
 
-        await execute(
+
+        console.log(
+            "🔥 REAKTION ERKANNT"
+        );
+
+
+        if (reaction.partial) {
+
+            try {
+
+                await reaction.fetch();
+
+            } catch(error) {
+
+                console.error(
+                    "❌ Reaction Fetch Fehler:",
+                    error
+                );
+
+                return;
+
+            }
+
+        }
+
+
+
+        await handleReaction(
             reaction,
             user
         );
+
 
     }
 
