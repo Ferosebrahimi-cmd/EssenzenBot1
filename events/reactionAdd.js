@@ -8,30 +8,31 @@ module.exports = {
     name: Events.MessageReactionAdd,
 
 
-    async execute(reaction, user) {
+    async execute(reaction, user, client) {
 
 
         console.log(
-            "🔥 REAKTION ERKANNT:",
-            user.username,
-            reaction.emoji.name
+            "🔥 REAKTION EVENT:",
+            user.tag,
+            reaction.emoji.name,
+            reaction.message.id
         );
 
 
-        if(user.bot)
+        if (user.bot)
             return;
 
 
-        if(reaction.partial){
+        if (reaction.partial) {
 
             try {
 
                 await reaction.fetch();
 
-            } catch(error){
+            } catch (error) {
 
                 console.error(
-                    "Partial Fehler:",
+                    "❌ Reaction Fetch Fehler:",
                     error
                 );
 
@@ -40,6 +41,11 @@ module.exports = {
             }
 
         }
+
+
+        console.log(
+            "✅ Reaktion erfolgreich verarbeitet"
+        );
 
 
     }
