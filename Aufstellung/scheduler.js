@@ -21,9 +21,9 @@ function startScheduler(client) {
             try {
 
 
-                console.log(
-                    "📋 Erstelle neue Aufstellung..."
-                );
+              console.log(
+    "⏰ Scheduler löst Aufstellung aus..."
+);
 
 
 
