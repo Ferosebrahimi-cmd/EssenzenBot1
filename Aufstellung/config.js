@@ -7,8 +7,8 @@ module.exports = {
     roleName: "╠═══════🔥Vatos MC🔥════════╣",
 
     // Täglich um 21:00 Uhr
-    hour: "*",
-minute: "*/3",
+   hour: "21",
+minute: "0",
 
     // Uhrzeit der eigentlichen Aufstellung
     meetingHour: "20:00"
