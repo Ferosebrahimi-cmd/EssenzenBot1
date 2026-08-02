@@ -2,96 +2,103 @@ const {
     EmbedBuilder
 } = require("discord.js");
 
+
 const {
     load,
     save
 } = require("./storage");
 
 
-module.exports = async function handleReaction(
-    reaction,
-    user
-) {
+const config = require("./config");
 
-    if (user.bot)
-        return;
+
+
+async function execute(reaction, user) {
+
+
+    console.log(
+        "🔥 REACTION VERARBEITUNG START"
+    );
 
 
     const data = load();
 
 
-    console.log("📂 GELADENE DATEN:", data);
+    console.log(
+        "📂 GELADENE DATEN:",
+        data
+    );
 
 
 
-    // Nur die aktuelle Aufstellung
+    // Nur die Aufstellungs-Nachricht bearbeiten
+
     if (
-        !data.messageId ||
         reaction.message.id !== data.messageId
-    )
-        return;
+    ) {
 
-
-
-    const emoji =
-        reaction.emoji.name;
-
-
-
-    if (
-        emoji !== "✅" &&
-        emoji !== "❌"
-    )
-        return;
-
-
-
-    const guild =
-        reaction.message.guild;
-
-
-    const member =
-        await guild.members.fetch(
-            user.id
+        console.log(
+            "❌ Falsche Nachricht"
         );
+
+        return;
+
+    }
+
 
 
     const name =
-        member.displayName;
+        user.globalName ||
+        user.username;
 
 
 
-    // ======================
-    // ✅ Dabei
-    // ======================
+    console.log(
+        "👤 Spieler:",
+        name
+    );
 
-    if (emoji === "✅") {
 
 
-        if (
-            !data.dabei.includes(name)
-        ) {
+    // Namen aus alter Liste holen
 
-            data.dabei.push(name);
+    const istDabei =
+        data.dabei.includes(name);
+
+
+
+    // ✅ Reaktion
+
+    if (
+        reaction.emoji.name === "✅"
+    ) {
+
+
+        if (!istDabei) {
+
+            data.dabei.push(
+                name
+            );
 
         }
 
 
-        console.log(
-            "✅ Dabei:",
-            name
-        );
+        data.alle =
+            data.alle.filter(
+                n => n !== name
+            );
 
 
     }
 
 
 
-    // ======================
-    // ❌ Entfernen
-    // ======================
 
-    if (emoji === "❌") {
+    // ❌ Reaktion
+
+    if (
+        reaction.emoji.name === "❌"
+    ) {
 
 
         data.dabei =
@@ -100,14 +107,17 @@ module.exports = async function handleReaction(
             );
 
 
-        console.log(
-            "❌ Entfernt:",
-            name
-        );
+        if (
+            !data.alle.includes(name)
+        ) {
 
+            data.alle.push(
+                name
+            );
+
+        }
 
     }
-
 
 
 
@@ -115,49 +125,42 @@ module.exports = async function handleReaction(
 
 
 
-    // ======================
-    // Embed aktualisieren
-    // ======================
-
-
-    const alle =
-        data.alle || [];
-
-
-    const dabei =
-        data.dabei || [];
+    console.log(
+        "💾 Neue Daten gespeichert:",
+        data
+    );
 
 
 
-    const offen =
-        alle.filter(
-            name =>
-            !dabei.includes(name)
-        );
+    // Nachricht aktualisieren
+
+    try {
 
 
+        const embed =
+            new EmbedBuilder()
 
-    const embed =
-        EmbedBuilder.from(
-            reaction.message.embeds[0]
-        )
-        .setDescription(
+            .setTitle(
+                "🔥 Vatos MC Aufstellung"
+            )
+
+            .setDescription(
 
 `
-📅 **Datum:** Aufstellung
+📅 **Datum**
 
-🕗 **Uhrzeit:**
+🕗 **Uhrzeit:** ${config.meetingHour}
 
 
 ━━━━━━━━━━━━━━
 
 
-**✅ Dabei (${dabei.length})**
+**✅ Dabei**
 
 ${
-dabei.length
+data.dabei.length
 ?
-dabei.map(
+data.dabei.map(
 n => `✅ ${n}`
 ).join("\n")
 :
@@ -169,37 +172,62 @@ n => `✅ ${n}`
 ━━━━━━━━━━━━━━
 
 
-**❌ Keine Rückmeldung (${offen.length})**
+**❌ Keine Rückmeldung**
 
 ${
-offen.length
+data.alle.length
 ?
-offen.map(
+data.alle.map(
 n => `❌ ${n}`
 ).join("\n")
 :
-"Alle haben reagiert"
+"Alle haben abgestimmt"
 }
 
 `
 
+            )
+
+            .setColor(
+                0xff0000
+            );
+
+
+
+        await reaction.message.edit({
+
+            embeds:[
+                embed
+            ]
+
+        });
+
+
+
+        console.log(
+            "✅ Aufstellung aktualisiert"
         );
 
 
-
-    await reaction.message.edit({
-
-        embeds:[
-            embed
-        ]
-
-    });
+    }
+    catch(error) {
 
 
+        console.error(
+            "❌ Update Fehler:",
+            error
+        );
 
-    console.log(
-        "👥 Noch offen:",
-        offen
-    );
+
+    }
+
+
+}
+
+
+
+module.exports = {
+
+    execute
 
 };

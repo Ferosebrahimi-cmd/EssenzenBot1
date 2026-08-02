@@ -3,8 +3,9 @@ const {
 } = require("discord.js");
 
 
-const handleReaction =
-    require("../aufstellung/reactions");
+const {
+    execute: handleReaction
+} = require("../Aufstellung/reactions");
 
 
 module.exports = {
@@ -18,6 +19,11 @@ module.exports = {
         console.log(
             "🔥 REAKTION ERKANNT"
         );
+
+
+        // Bot-Reaktionen ignorieren
+        if (user.bot) return;
+
 
 
         if (reaction.partial) {
