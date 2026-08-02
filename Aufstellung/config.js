@@ -8,7 +8,7 @@ module.exports = {
 
     // Täglich um 21:00 Uhr
    hour: "*",
-minute: "/2",
+minute: "*/2",
 
     // Uhrzeit der eigentlichen Aufstellung
     meetingHour: "20:00"
