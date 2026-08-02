@@ -3,15 +3,20 @@ const {
     EmbedBuilder
 } = require("discord.js");
 
+
 const {
     load,
     save
 } = require("../Aufstellung/aufstellung/storage");
 
-const config = require("../Aufstellung/aufstellung/config");
+
+const config =
+    require("../Aufstellung/aufstellung/config");
+
 
 
 module.exports = {
+
 
     name: Events.MessageReactionAdd,
 
@@ -19,10 +24,13 @@ module.exports = {
     async execute(reaction, user) {
 
 
+        // Bot ignorieren
         if (user.bot)
             return;
 
 
+
+        // Falls Discord die Nachricht nicht geladen hat
         if (reaction.partial) {
 
             try {
@@ -31,7 +39,11 @@ module.exports = {
 
             } catch (error) {
 
-                console.error(error);
+                console.error(
+                    "❌ Reaction Fetch Fehler:",
+                    error
+                );
+
                 return;
 
             }
@@ -39,15 +51,29 @@ module.exports = {
         }
 
 
+
         const data = load();
 
 
+
+        // Keine aktive Aufstellung
         if (!data.messageId)
             return;
 
 
+
+        // Nur Aufstellungsnachricht beachten
         if (
             reaction.message.id !== data.messageId
+        )
+            return;
+
+
+
+
+        if (
+            reaction.emoji.name !== "✅" &&
+            reaction.emoji.name !== "❌"
         )
             return;
 
@@ -57,18 +83,19 @@ module.exports = {
             reaction.message.guild;
 
 
+
         const member =
             await guild.members.fetch(
                 user.id
             );
 
 
-        const name =
+
+        const nickname =
             member.displayName;
 
 
 
-        // Teilnehmer Array sicherstellen
         if (!Array.isArray(data.dabei)) {
 
             data.dabei = [];
@@ -77,9 +104,9 @@ module.exports = {
 
 
 
-        // ======================
-        // DABEI
-        // ======================
+        // =====================
+        // ✅ Dabei
+        // =====================
 
         if (
             reaction.emoji.name === "✅"
@@ -87,15 +114,20 @@ module.exports = {
 
 
             if (
-                !data.dabei.includes(name)
+                !data.dabei.includes(nickname)
             ) {
 
-                data.dabei.push(name);
+
+                data.dabei.push(
+                    nickname
+                );
+
 
                 console.log(
-                    "✅ Dabei:",
-                    name
+                    "✅ Teilnehmer:",
+                    nickname
                 );
+
 
             }
 
@@ -104,9 +136,10 @@ module.exports = {
 
 
 
-        // ======================
-        // NICHT DABEI
-        // ======================
+
+        // =====================
+        // ❌ Entfernen
+        // =====================
 
         if (
             reaction.emoji.name === "❌"
@@ -115,13 +148,14 @@ module.exports = {
 
             data.dabei =
                 data.dabei.filter(
-                    n => n !== name
+                    name =>
+                    name !== nickname
                 );
 
 
             console.log(
                 "❌ Entfernt:",
-                name
+                nickname
             );
 
 
@@ -129,67 +163,94 @@ module.exports = {
 
 
 
+
         save(data);
 
 
 
-        // ======================
-        // Embed aktualisieren
-        // ======================
+
+        // =====================
+        // Embed neu erstellen
+        // =====================
 
 
-        const role =
-            guild.roles.cache.find(
-                r => r.name === config.roleName
+        const datum =
+            new Date(
+                Date.now() + 86400000
+            ).toLocaleDateString(
+                "de-DE"
             );
-
-
-        const alle =
-            role
-            ? role.members.map(
-                m => m.displayName
-            )
-            : [];
 
 
 
         const keine =
-            alle.filter(
-                n => !data.dabei.includes(n)
+            data.alle.filter(
+                name =>
+                !data.dabei.includes(name)
             );
+
 
 
 
         const embed =
-            EmbedBuilder.from(
-                reaction.message.embeds[0]
-            );
+            new EmbedBuilder()
 
 
-        embed.setDescription(
+            .setTitle(
+                "🔥 Vatos MC Aufstellung"
+            )
 
-`📅 **Aufstellung**
+
+            .setDescription(
+
+`📅 **Datum:** ${datum}
+🕗 **Uhrzeit:** ${config.meetingHour}
+
+
+━━━━━━━━━━━━━━
 
 
 **✅ Dabei:**
-${data.dabei.length
-? data.dabei.map(
-    n => `✅ ${n}`
-).join("\n")
-: "Noch niemand"}
 
+${
+data.dabei.length
+?
+data.dabei.map(
+name =>
+`✅ ${name}`
+).join("\n")
+:
+"Niemand"
+}
+
+
+
+━━━━━━━━━━━━━━
 
 
 **❌ Keine Rückmeldung:**
-${keine.length
-? keine.map(
-    n => `❌ ${n}`
+
+${
+keine.length
+?
+keine.map(
+name =>
+`❌ ${name}`
 ).join("\n")
-: "Alle haben reagiert"}
+:
+"Alle haben reagiert"
+}
 
 `
 
-        );
+            )
+
+
+            .setColor(
+                0xff0000
+            );
+
+
 
 
 
@@ -204,5 +265,6 @@ ${keine.length
 
 
     }
+
 
 };
