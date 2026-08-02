@@ -202,7 +202,7 @@ ${
 data.dabei.length
 ?
 data.dabei.map(
-n => `✅ ${n}`
+n => `✅ **${n}**`
 ).join("\n")
 :
 "Noch niemand"
@@ -219,7 +219,7 @@ ${
 data.nichtDabei.length
 ?
 data.nichtDabei.map(
-n => `❌ ${n}`
+n => `❌ **${n}**`
 ).join("\n")
 :
 "Noch niemand"
@@ -236,7 +236,7 @@ ${
 keineRueckmeldung.length
 ?
 keineRueckmeldung.map(
-n => `❔ ${n}`
+n => `❔ **${n}**`
 ).join("\n")
 :
 "Alle haben abgestimmt"
