@@ -8,6 +8,8 @@ const {
     save
 } = require("../Aufstellung/aufstellung/storage");
 
+const config = require("../Aufstellung/aufstellung/config");
+
 
 module.exports = {
 
@@ -27,8 +29,9 @@ module.exports = {
 
                 await reaction.fetch();
 
-            } catch {
+            } catch (error) {
 
+                console.error(error);
                 return;
 
             }
@@ -36,32 +39,17 @@ module.exports = {
         }
 
 
-        if (reaction.emoji.name !== "✅")
+        const data = load();
+
+
+        if (!data.messageId)
             return;
-
-
-
-        let data = load();
-
-
-        if (!data)
-            return;
-
 
 
         if (
             reaction.message.id !== data.messageId
         )
             return;
-
-
-
-        // Falls alte Speicherung benutzt wurde
-        if (!Array.isArray(data.dabei)) {
-
-            data.dabei = [];
-
-        }
 
 
 
@@ -80,14 +68,95 @@ module.exports = {
 
 
 
-        if (!data.dabei.includes(name)) {
+        // Teilnehmer Array sicherstellen
+        if (!Array.isArray(data.dabei)) {
 
-            data.dabei.push(name);
+            data.dabei = [];
 
         }
 
 
+
+        // ======================
+        // DABEI
+        // ======================
+
+        if (
+            reaction.emoji.name === "✅"
+        ) {
+
+
+            if (
+                !data.dabei.includes(name)
+            ) {
+
+                data.dabei.push(name);
+
+                console.log(
+                    "✅ Dabei:",
+                    name
+                );
+
+            }
+
+
+        }
+
+
+
+        // ======================
+        // NICHT DABEI
+        // ======================
+
+        if (
+            reaction.emoji.name === "❌"
+        ) {
+
+
+            data.dabei =
+                data.dabei.filter(
+                    n => n !== name
+                );
+
+
+            console.log(
+                "❌ Entfernt:",
+                name
+            );
+
+
+        }
+
+
+
         save(data);
+
+
+
+        // ======================
+        // Embed aktualisieren
+        // ======================
+
+
+        const role =
+            guild.roles.cache.find(
+                r => r.name === config.roleName
+            );
+
+
+        const alle =
+            role
+            ? role.members.map(
+                m => m.displayName
+            )
+            : [];
+
+
+
+        const keine =
+            alle.filter(
+                n => !data.dabei.includes(n)
+            );
 
 
 
@@ -110,12 +179,18 @@ ${data.dabei.length
 : "Noch niemand"}
 
 
+
 **❌ Keine Rückmeldung:**
-Noch keine Auswertung
+${keine.length
+? keine.map(
+    n => `❌ ${n}`
+).join("\n")
+: "Alle haben reagiert"}
 
 `
 
         );
+
 
 
         await reaction.message.edit({
@@ -126,11 +201,6 @@ Noch keine Auswertung
 
         });
 
-
-        console.log(
-            "✅ Teilnehmer hinzugefügt:",
-            name
-        );
 
 
     }
