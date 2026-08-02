@@ -1,20 +1,20 @@
 const cron = require("node-cron");
 
 const config = require("./config");
-const {
-    sendAufstellung
-} = require("./message");
 
 const {
-    save
-} = require("./storage");
+    sendAufstellung
+} = require("./aufstellung");
+
 
 
 function startScheduler(client) {
 
 
     cron.schedule(
+
         `${config.minute} ${config.hour} * * *`,
+
         async () => {
 
 
@@ -26,26 +26,17 @@ function startScheduler(client) {
                 );
 
 
-                const message =
-                    await sendAufstellung(
-                        client
-                    );
 
+                await sendAufstellung(
+                    client
+                );
 
-                save({
-
-                    messageId:
-                        message.id,
-
-                    channelId:
-                        config.channelId
-
-                });
 
 
                 console.log(
                     "✅ Aufstellung erstellt"
                 );
+
 
 
             }
@@ -80,6 +71,7 @@ function startScheduler(client) {
 
 
 }
+
 
 
 module.exports = {
