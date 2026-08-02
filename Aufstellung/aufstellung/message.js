@@ -3,6 +3,7 @@ const {
 } = require("discord.js");
 
 const config = require("./config");
+
 const {
     save
 } = require("./storage");
@@ -21,10 +22,12 @@ async function sendAufstellung(client) {
         channel.guild;
 
 
+
     const role =
         guild.roles.cache.find(
             r => r.name === config.roleName
         );
+
 
 
     const datum =
@@ -35,12 +38,14 @@ async function sendAufstellung(client) {
         );
 
 
+
     const mitglieder =
         role
         ? role.members.map(
             m => m.displayName
         )
         : [];
+
 
 
     const embed =
@@ -61,7 +66,11 @@ Noch niemand
 
 
 **❌ Keine Rückmeldung:**
-Noch keine Auswertung
+${mitglieder.length
+? mitglieder.map(
+    name => `❌ ${name}`
+).join("\n")
+: "Keine Mitglieder gefunden"}
 
 
 `
@@ -71,6 +80,8 @@ Noch keine Auswertung
         .setColor(
             0xff0000
         );
+
+
 
 
     const message =
@@ -88,7 +99,12 @@ Noch keine Auswertung
         });
 
 
+
     await message.react("✅");
+
+    await message.react("❌");
+
+
 
 
     save({
@@ -99,12 +115,16 @@ Noch keine Auswertung
         channelId:
             channel.id,
 
+
         alle:
             mitglieder,
 
-        dabei:[]
+
+        dabei:
+            []
 
     });
+
 
 
     return message;
@@ -112,6 +132,9 @@ Noch keine Auswertung
 }
 
 
+
 module.exports = {
+
     sendAufstellung
+
 };
