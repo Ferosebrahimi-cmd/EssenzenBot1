@@ -12,7 +12,7 @@ module.exports = {
 
         if (message.author.bot) return;
 
-        const match = message.content.match(/^\+(\d+)(?:\s*essenzen)?$/i);
+        const match = message.content.match(/^\+(\d+)/);
 
         console.log("🔎 Treffer:", match);
 
