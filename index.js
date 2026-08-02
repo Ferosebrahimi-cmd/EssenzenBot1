@@ -50,6 +50,11 @@ app.listen(PORT, () => {
 // Discord Bot
 // =========================
 
+const {
+    Partials
+} = require("discord.js");
+
+
 const client = new Client({
 
     intents: [
@@ -64,9 +69,20 @@ const client = new Client({
 
         GatewayIntentBits.GuildMessageReactions
 
+    ],
+
+    partials: [
+
+        Partials.Message,
+
+        Partials.Channel,
+
+        Partials.Reaction
+
     ]
 
 });
+
 
 
 // =========================
