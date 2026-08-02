@@ -3,16 +3,12 @@ const {
     EmbedBuilder
 } = require("discord.js");
 
-
 const {
     load,
     save
 } = require("./storage");
 
-
-const config =
-    require("./config");
-
+const config = require("./config");
 
 
 module.exports = {
@@ -25,7 +21,6 @@ module.exports = {
 
         if (user.bot)
             return;
-
 
 
         if (reaction.partial) {
@@ -43,19 +38,18 @@ module.exports = {
         }
 
 
-
         if (
             reaction.emoji.name !== "✅" &&
             reaction.emoji.name !== "❌"
-        )
+        ) {
+
             return;
 
+        }
 
 
 
-        let data =
-            load();
-
+        let data = load();
 
 
         if (!data)
@@ -63,17 +57,20 @@ module.exports = {
 
 
 
+        // Nur aktuelle Aufstellung
+
         if (
             reaction.message.id !== data.messageId
-        )
+        ) {
+
             return;
 
+        }
 
 
 
         const guild =
             reaction.message.guild;
-
 
 
         const member =
@@ -87,21 +84,18 @@ module.exports = {
 
 
 
-
-
         // Sicherheit
 
-        data.alle =
+        const alle =
             Array.isArray(data.alle)
-            ? data.alle
+            ? [...data.alle]
             : [];
 
 
-        data.dabei =
+        let dabei =
             Array.isArray(data.dabei)
-            ? data.dabei
+            ? [...data.dabei]
             : [];
-
 
 
 
@@ -111,12 +105,11 @@ module.exports = {
             reaction.emoji.name === "✅"
         ) {
 
-
             if (
-                !data.dabei.includes(nickname)
+                !dabei.includes(nickname)
             ) {
 
-                data.dabei.push(
+                dabei.push(
                     nickname
                 );
 
@@ -126,16 +119,12 @@ module.exports = {
 
 
 
-
-
-
         if (
             reaction.emoji.name === "❌"
         ) {
 
-
-            data.dabei =
-                data.dabei.filter(
+            dabei =
+                dabei.filter(
                     name =>
                     name !== nickname
                 );
@@ -144,10 +133,24 @@ module.exports = {
 
 
 
+        // Wichtig:
+        // ALLE bleibt erhalten
 
+        save({
 
+            messageId:
+                data.messageId,
 
-        save(data);
+            channelId:
+                data.channelId,
+
+            alle:
+                alle,
+
+            dabei:
+                dabei
+
+        });
 
 
 
@@ -155,12 +158,10 @@ module.exports = {
 
 
         const keine =
-            data.alle.filter(
+            alle.filter(
                 name =>
-                !data.dabei.includes(name)
+                !dabei.includes(name)
             );
-
-
 
 
 
@@ -171,8 +172,6 @@ module.exports = {
             ).toLocaleDateString(
                 "de-DE"
             );
-
-
 
 
 
@@ -197,16 +196,15 @@ module.exports = {
 **✅ Dabei**
 
 ${
-data.dabei.length
+dabei.length
 ?
-data.dabei.map(
+dabei.map(
 name =>
 `✅ ${name}`
 ).join("\n")
 :
 "Noch niemand"
 }
-
 
 
 ━━━━━━━━━━━━━━
@@ -236,8 +234,6 @@ name =>
 
 
 
-
-
         await reaction.message.edit({
 
             embeds:[
@@ -246,6 +242,12 @@ name =>
 
         });
 
+
+
+        console.log(
+            "✅ Aufstellung aktualisiert:",
+            nickname
+        );
 
 
     }
