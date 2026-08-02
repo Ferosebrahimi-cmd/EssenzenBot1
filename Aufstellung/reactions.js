@@ -9,47 +9,142 @@ const {
 
 const config = require("./config");
 
+
 async function execute(reaction, user) {
 
     if (user.bot) return;
 
+
     if (reaction.partial) {
+
         try {
+
             await reaction.fetch();
+
         } catch {
+
             return;
+
         }
+
     }
 
+
     const data = load();
+
 
     if (reaction.message.id !== data.messageId)
         return;
 
+
+
     const member =
         await reaction.message.guild.members.fetch(user.id);
 
-    const name = member.displayName;
 
-    // Sicherheit
+    const name =
+        member.displayName;
+
+
+
+    // Sicherheit falls alte Speicherung
+
+    if (!data.dabei)
+        data.dabei = [];
+
+
     if (!data.nichtDabei)
         data.nichtDabei = [];
 
-    // Überall entfernen
-    data.dabei =
-        data.dabei.filter(n => n !== name);
 
-    data.nichtDabei =
-        data.nichtDabei.filter(n => n !== name);
 
-    // Neue Auswahl
+    // =========================
+    // Auswahl Toggle System
+    // =========================
+
+
     if (reaction.emoji.name === "✅") {
 
-        data.dabei.push(name);
+
+        // Wenn bereits dabei -> zurücksetzen
+
+        if (data.dabei.includes(name)) {
+
+
+            data.dabei =
+                data.dabei.filter(
+                    n => n !== name
+                );
+
+
+        } else {
+
+
+            // Aus anderer Auswahl entfernen
+
+            data.nichtDabei =
+                data.nichtDabei.filter(
+                    n => n !== name
+                );
+
+
+            data.dabei.push(name);
+
+
+        }
+
+
 
     } else if (reaction.emoji.name === "❌") {
 
-        data.nichtDabei.push(name);
+
+
+        // Wenn bereits nicht dabei -> zurücksetzen
+
+        if (data.nichtDabei.includes(name)) {
+
+
+            data.nichtDabei =
+                data.nichtDabei.filter(
+                    n => n !== name
+                );
+
+
+        } else {
+
+
+            data.dabei =
+                data.dabei.filter(
+                    n => n !== name
+                );
+
+
+            data.nichtDabei.push(name);
+
+
+        }
+
+
+
+    } else if (reaction.emoji.name === "❔") {
+
+
+
+        // Manuell zurück auf keine Rückmeldung
+
+
+        data.dabei =
+            data.dabei.filter(
+                n => n !== name
+            );
+
+
+        data.nichtDabei =
+            data.nichtDabei.filter(
+                n => n !== name
+            );
+
+
 
     } else {
 
@@ -57,68 +152,140 @@ async function execute(reaction, user) {
 
     }
 
+
+
+
     save(data);
+
+
+
 
     const keineRueckmeldung =
         data.alle.filter(
+
             n =>
-                !data.dabei.includes(n) &&
-                !data.nichtDabei.includes(n)
+            !data.dabei.includes(n) &&
+            !data.nichtDabei.includes(n)
+
         );
+
+
+
+
 
     const embed =
         new EmbedBuilder()
 
-            .setTitle("🔥 Vatos MC Aufstellung")
 
-            .setDescription(`
+        .setTitle(
+            "🔥 Vatos MC Aufstellung"
+        )
 
-📅 **Datum:** ${new Date(Date.now() + 86400000).toLocaleDateString("de-DE")}
+
+        .setDescription(`
+
+📅 **Datum:** ${
+new Date(Date.now() + 86400000)
+.toLocaleDateString("de-DE")
+}
+
 
 🕗 **Uhrzeit:** ${config.meetingHour}
 
+
 ━━━━━━━━━━━━━━
+
 
 **✅ Dabei (${data.dabei.length})**
 
-${data.dabei.length
-    ? data.dabei.map(n => `✅ ${n}`).join("\n")
-    : "Noch niemand"}
+${
+data.dabei.length
+?
+data.dabei.map(
+n => `✅ ${n}`
+).join("\n")
+:
+"Noch niemand"
+}
+
+
 
 ━━━━━━━━━━━━━━
+
 
 **❌ Nicht dabei (${data.nichtDabei.length})**
 
-${data.nichtDabei.length
-    ? data.nichtDabei.map(n => `❌ ${n}`).join("\n")
-    : "Noch niemand"}
+${
+data.nichtDabei.length
+?
+data.nichtDabei.map(
+n => `❌ ${n}`
+).join("\n")
+:
+"Noch niemand"
+}
+
+
 
 ━━━━━━━━━━━━━━
+
 
 **❔ Keine Rückmeldung (${keineRueckmeldung.length})**
 
-${keineRueckmeldung.length
-    ? keineRueckmeldung.map(n => `❔ ${n}`).join("\n")
-    : "Alle haben abgestimmt"}
+${
+keineRueckmeldung.length
+?
+keineRueckmeldung.map(
+n => `❔ ${n}`
+).join("\n")
+:
+"Alle haben abgestimmt"
+}
+
+
 
 ━━━━━━━━━━━━━━
 
-**Reagiere mit:**
+
+Reagiere mit:
+
 ✅ = Dabei
+
 ❌ = Nicht dabei
+
+❔ = Keine Rückmeldung
 
 `)
 
-            .setColor(0xff0000);
+
+        .setColor(0xff0000);
+
+
+
+
 
     await reaction.message.edit({
-        embeds: [embed]
+
+        embeds: [
+            embed
+        ]
+
     });
 
-    console.log("✅ Aufstellung aktualisiert:", name);
+
+
+    console.log(
+        "✅ Aufstellung aktualisiert:",
+        name
+    );
+
 
 }
 
+
+
 module.exports = {
+
     execute
+
 };
