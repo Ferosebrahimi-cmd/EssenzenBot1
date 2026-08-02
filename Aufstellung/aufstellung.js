@@ -137,7 +137,7 @@ mitglieder.length
 ?
 mitglieder.map(
 name =>
-`❔ ${name}`
+`❔ **${name}**`
 ).join("\n")
 :
 "Niemand"
