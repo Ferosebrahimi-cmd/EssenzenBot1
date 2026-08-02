@@ -1,8 +1,6 @@
 const {
-    Events,
     EmbedBuilder
 } = require("discord.js");
-
 
 const {
     load,
@@ -10,248 +8,160 @@ const {
 } = require("./storage");
 
 
-const config =
-    require("./config");
+module.exports = async function handleReaction(
+    reaction,
+    user
+) {
+
+    if (user.bot)
+        return;
+
+
+    const data = load();
+
+
+    console.log("📂 GELADENE DATEN:", data);
 
 
 
-module.exports = {
-
-    name: Events.MessageReactionAdd,
-
-
-    async execute(reaction, user) {
-
-
-        if (user.bot)
-            return;
+    // Nur die aktuelle Aufstellung
+    if (
+        !data.messageId ||
+        reaction.message.id !== data.messageId
+    )
+        return;
 
 
 
-        if (reaction.partial) {
+    const emoji =
+        reaction.emoji.name;
 
-            try {
 
-                await reaction.fetch();
 
-            } catch(error) {
+    if (
+        emoji !== "✅" &&
+        emoji !== "❌"
+    )
+        return;
 
-                console.error(
-                    "❌ Reaction Fetch Fehler:",
-                    error
-                );
 
-                return;
 
-            }
+    const guild =
+        reaction.message.guild;
 
-        }
 
+    const member =
+        await guild.members.fetch(
+            user.id
+        );
+
+
+    const name =
+        member.displayName;
+
+
+
+    // ======================
+    // ✅ Dabei
+    // ======================
+
+    if (emoji === "✅") {
 
 
         if (
-            reaction.emoji.name !== "✅" &&
-            reaction.emoji.name !== "❌"
+            !data.dabei.includes(name)
         ) {
 
-            return;
+            data.dabei.push(name);
 
         }
 
 
+        console.log(
+            "✅ Dabei:",
+            name
+        );
 
 
-        let data =
-            load();
+    }
 
+
+
+    // ======================
+    // ❌ Entfernen
+    // ======================
+
+    if (emoji === "❌") {
+
+
+        data.dabei =
+            data.dabei.filter(
+                n => n !== name
+            );
 
 
         console.log(
-            "📂 GELADENE DATEN:",
-            data
+            "❌ Entfernt:",
+            name
+        );
+
+
+    }
+
+
+
+
+    save(data);
+
+
+
+    // ======================
+    // Embed aktualisieren
+    // ======================
+
+
+    const alle =
+        data.alle || [];
+
+
+    const dabei =
+        data.dabei || [];
+
+
+
+    const offen =
+        alle.filter(
+            name =>
+            !dabei.includes(name)
         );
 
 
 
-        if (!data.messageId)
-            return;
-
-
-
-        if (
-            reaction.message.id !== data.messageId
-        ) {
-
-            return;
-
-        }
-
-
-
-
-        const guild =
-            reaction.message.guild;
-
-
-        if (!guild)
-            return;
-
-
-
-
-        const member =
-            await guild.members.fetch(
-                user.id
-            );
-
-
-        const nickname =
-            member.displayName;
-
-
-
-
-        // Sicherheit
-
-        if (
-            !Array.isArray(data.alle)
-        ) {
-
-            data.alle = [];
-
-        }
-
-
-        if (
-            !Array.isArray(data.dabei)
-        ) {
-
-            data.dabei = [];
-
-        }
-
-
-
-
-
-        // ✅ Hinzufügen
-
-        if (
-            reaction.emoji.name === "✅"
-        ) {
-
-
-            if (
-                !data.dabei.includes(
-                    nickname
-                )
-            ) {
-
-                data.dabei.push(
-                    nickname
-                );
-
-            }
-
-
-        }
-
-
-
-
-
-        // ❌ Entfernen
-
-        if (
-            reaction.emoji.name === "❌"
-        ) {
-
-
-            data.dabei =
-                data.dabei.filter(
-                    name =>
-                    name !== nickname
-                );
-
-
-        }
-
-
-
-
-        // WICHTIG:
-        // alle bleibt unverändert
-
-        save({
-
-            messageId:
-                data.messageId,
-
-            channelId:
-                data.channelId,
-
-            alle:
-                data.alle,
-
-            dabei:
-                data.dabei
-
-        });
-
-
-
-
-
-        const keine =
-            data.alle.filter(
-                name =>
-                !data.dabei.includes(name)
-            );
-
-
-
-
-        const datum =
-            new Date(
-                Date.now() + 86400000
-            ).toLocaleDateString(
-                "de-DE"
-            );
-
-
-
-
-
-        const embed =
-            new EmbedBuilder()
-
-            .setTitle(
-                "🔥 Vatos MC Aufstellung"
-            )
-
-
-            .setDescription(
+    const embed =
+        EmbedBuilder.from(
+            reaction.message.embeds[0]
+        )
+        .setDescription(
 
 `
-📅 **Datum:** ${datum}
+📅 **Datum:** Aufstellung
 
-🕗 **Uhrzeit:** ${config.meetingHour}
+🕗 **Uhrzeit:**
 
 
 ━━━━━━━━━━━━━━
 
 
-**✅ Dabei**
+**✅ Dabei (${dabei.length})**
 
 ${
-data.dabei.length
+dabei.length
 ?
-data.dabei.map(
-name =>
-`✅ ${name}`
+dabei.map(
+n => `✅ ${n}`
 ).join("\n")
 :
-"Noch niemand"
+"Niemand"
 }
 
 
@@ -259,14 +169,13 @@ name =>
 ━━━━━━━━━━━━━━
 
 
-**❌ Keine Rückmeldung**
+**❌ Keine Rückmeldung (${offen.length})**
 
 ${
-keine.length
+offen.length
 ?
-keine.map(
-name =>
-`❌ ${name}`
+offen.map(
+n => `❌ ${n}`
 ).join("\n")
 :
 "Alle haben reagiert"
@@ -274,39 +183,23 @@ name =>
 
 `
 
-            )
-
-
-            .setColor(
-                0xff0000
-            );
-
-
-
-
-
-        await reaction.message.edit({
-
-            embeds: [
-                embed
-            ]
-
-        });
-
-
-
-        console.log(
-            "✅ Aufstellung aktualisiert:",
-            nickname
         );
 
 
-        console.log(
-            "👥 Noch offen:",
-            keine
-        );
+
+    await reaction.message.edit({
+
+        embeds:[
+            embed
+        ]
+
+    });
 
 
-    }
+
+    console.log(
+        "👥 Noch offen:",
+        offen
+    );
 
 };
