@@ -57,21 +57,34 @@ async function sendAufstellung(client) {
 
         .setDescription(
 
-`📅 **Aufstellung:** ${datum}
+`📅 **Datum:** ${datum}
 🕗 **Uhrzeit:** ${config.meetingHour}
 
 
+━━━━━━━━━━━━━━
+
+
 **✅ Dabei:**
-Noch niemand
+
+Niemand
+
+
+
+━━━━━━━━━━━━━━
 
 
 **❌ Keine Rückmeldung:**
-${mitglieder.length
-? mitglieder.map(
-    name => `❌ ${name}`
-).join("\n")
-: "Keine Mitglieder gefunden"}
 
+${
+mitglieder.length
+?
+mitglieder.map(
+name =>
+`❌ ${name}`
+).join("\n")
+:
+"Keine Mitglieder gefunden"
+}
 
 `
 
@@ -80,7 +93,6 @@ ${mitglieder.length
         .setColor(
             0xff0000
         );
-
 
 
 
@@ -101,11 +113,13 @@ ${mitglieder.length
 
 
     await message.react("✅");
-
     await message.react("❌");
 
 
 
+    // WICHTIG:
+    // komplette neue Aufstellung speichern
+    // alte Daten werden überschrieben
 
     save({
 
@@ -127,6 +141,12 @@ ${mitglieder.length
 
 
 
+    console.log(
+        "🔄 Neue Aufstellung gespeichert - alte Daten gelöscht"
+    );
+
+
+
     return message;
 
 }
@@ -134,7 +154,5 @@ ${mitglieder.length
 
 
 module.exports = {
-
     sendAufstellung
-
 };
