@@ -3,46 +3,48 @@ const {
 } = require("discord.js");
 
 const config = require("./config");
-const storage = require("./storage");
+const {
+    save
+} = require("./storage");
 
 
 async function sendAufstellung(client) {
 
-    const channel = await client.channels.fetch(
-        config.channelId
-    );
+
+    const channel =
+        await client.channels.fetch(
+            config.channelId
+        );
 
 
-    const guild = channel.guild;
+    const guild =
+        channel.guild;
 
 
-    const role = guild.roles.cache.find(
-        r => r.name === config.roleName
-    );
-
-
-    const date = new Date();
-
-    date.setDate(
-        date.getDate() + 1
-    );
+    const role =
+        guild.roles.cache.find(
+            r => r.name === config.roleName
+        );
 
 
     const datum =
-        date.toLocaleDateString(
+        new Date(
+            Date.now() + 86400000
+        ).toLocaleDateString(
             "de-DE"
         );
 
 
-    const members = role
+    const mitglieder =
+        role
         ? role.members.map(
-            member =>
-                `❌ ${member.displayName}`
+            m => m.displayName
         )
         : [];
 
 
-    const embed = new EmbedBuilder()
+    const embed =
+        new EmbedBuilder()
 
         .setTitle(
             "🔥 Vatos MC Aufstellung"
@@ -53,12 +55,20 @@ async function sendAufstellung(client) {
 `📅 **Aufstellung:** ${datum}
 🕗 **Uhrzeit:** ${config.meetingHour}
 
-Reagiere mit ✅ wenn du dabei bist.
 
-**Teilnehmer:**
-${members.length ? members.join("\n") : "Noch keine Rückmeldungen"}
+**✅ Dabei:**
+Noch niemand
+
+
+**❌ Keine Rückmeldung:**
+${mitglieder.length
+? mitglieder.map(
+    name => `❌ ${name}`
+).join("\n")
+: "Keine Mitglieder gefunden"}
 
 `
+
         )
 
         .setColor(
@@ -70,9 +80,9 @@ ${members.length ? members.join("\n") : "Noch keine Rückmeldungen"}
         await channel.send({
 
             content:
-                role
-                ? `<@&${role.id}>`
-                : "",
+            role
+            ? `<@&${role.id}>`
+            : "",
 
             embeds:[
                 embed
@@ -84,7 +94,7 @@ ${members.length ? members.join("\n") : "Noch keine Rückmeldungen"}
     await message.react("✅");
 
 
-    storage.save({
+    save({
 
         messageId:
             message.id,
@@ -92,7 +102,10 @@ ${members.length ? members.join("\n") : "Noch keine Rückmeldungen"}
         channelId:
             channel.id,
 
-        dabei: []
+        alle:
+            mitglieder,
+
+        dabei:[]
 
     });
 
@@ -103,7 +116,5 @@ ${members.length ? members.join("\n") : "Noch keine Rückmeldungen"}
 
 
 module.exports = {
-
     sendAufstellung
-
 };
