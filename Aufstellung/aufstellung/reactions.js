@@ -3,15 +3,12 @@ const {
 } = require("discord.js");
 
 const {
-    createEmbed,
-    getStatus
-} = require("./message");
-
-const config = require("./config");
+    load,
+    save
+} = require("./storage");
 
 
 module.exports = {
-
 
     name: Events.MessageReactionAdd,
 
@@ -19,42 +16,29 @@ module.exports = {
     async execute(reaction, user) {
 
 
-        if (user.bot) return;
-
-
-        if (!["✅", "❌", "❓"].includes(reaction.emoji.name)) {
+        if(user.bot)
             return;
-        }
 
 
-
-        const message =
-            reaction.message;
+        const data = load();
 
 
-
-        if (
-            message.channel.id !== config.channelId
-        ) {
+        if(
+            !data.messageId ||
+            reaction.message.id !== data.messageId
+        )
             return;
-        }
+
+
+        if(
+            reaction.emoji.name !== "✅"
+        )
+            return;
 
 
 
         const guild =
-            message.guild;
-
-
-
-        const role =
-            guild.roles.cache.find(
-                r => r.name === config.roleName
-            );
-
-
-
-        if (!role) return;
-
+            reaction.message.guild;
 
 
         const member =
@@ -63,115 +47,66 @@ module.exports = {
             );
 
 
-
-        if (!member.roles.cache.has(role.id)) {
-            return;
-        }
+        const nickname =
+            member.displayName;
 
 
 
-        const status = {
+        if(
+            !data.dabei.includes(
+                nickname
+            )
+        ){
 
-            dabei: [],
-            nichtDabei: [],
-            unsicher: [],
-            offen: []
-
-        };
-
-
-
-        const members =
-            role.members;
-
-
-
-        for (const [
-            id,
-            roleMember
-        ] of members) {
-
-
-
-            const reactions =
-                message.reactions.cache;
-
-
-
-            const hatDabei =
-                reactions
-                    .get("✅")
-                    ?.users.cache.has(id);
-
-
-
-            const hatNichtDabei =
-                reactions
-                    .get("❌")
-                    ?.users.cache.has(id);
-
-
-
-            const hatUnsicher =
-                reactions
-                    .get("❓")
-                    ?.users.cache.has(id);
-
-
-
-            if (hatDabei) {
-
-
-                status.dabei.push(
-                    roleMember.user.username
-                );
-
-
-            }
-            else if (hatNichtDabei) {
-
-
-                status.nichtDabei.push(
-                    roleMember.user.username
-                );
-
-
-            }
-            else if (hatUnsicher) {
-
-
-                status.unsicher.push(
-                    roleMember.user.username
-                );
-
-
-            }
-            else {
-
-
-                status.offen.push(
-                    roleMember.user.username
-                );
-
-
-            }
-
+            data.dabei.push(
+                nickname
+            );
 
         }
+
+
+        save(data);
+
+
+
+        const message =
+            await reaction.message.fetch();
 
 
 
         const embed =
-            createEmbed(
-                status
-            );
+            message.embeds[0];
 
+
+        const newDescription =
+
+`📅 **Aufstellung**
+🕗 **Uhrzeit**
+
+Reagiere mit ✅ wenn du dabei bist.
+
+
+**Dabei:**
+${data.dabei.length
+? data.dabei.map(
+    name => `✅ ${name}`
+).join("\n")
+: "Noch niemand"}
+
+`;
+
+
+        const updated =
+            EmbedBuilder.from(embed)
+            .setDescription(
+                newDescription
+            );
 
 
         await message.edit({
 
-            embeds: [
-                embed
+            embeds:[
+                updated
             ]
 
         });

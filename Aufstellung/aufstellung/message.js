@@ -3,149 +3,98 @@ const {
 } = require("discord.js");
 
 const config = require("./config");
-
-
-async function getStatus(client, guild) {
-
-    const role =
-        guild.roles.cache.find(
-            r => r.name === config.roleName
-        );
-
-
-    if (!role) {
-
-        return {
-            dabei: [],
-            nichtDabei: [],
-            unsicher: [],
-            offen: []
-        };
-
-    }
-
-
-    const members =
-        role.members;
-
-
-    return {
-
-        dabei: [],
-        nichtDabei: [],
-        unsicher: [],
-
-        offen:
-            members.map(
-                member => member.user.username
-            )
-
-    };
-
-}
-
-
-
-function createEmbed(status) {
-
-
-    const tomorrow =
-        new Date();
-
-
-    tomorrow.setDate(
-        tomorrow.getDate() + 1
-    );
-
-
-    const datum =
-        tomorrow.toLocaleDateString(
-            "de-DE"
-        );
-
-
-
-    return new EmbedBuilder()
-
-        .setTitle(
-            "📋 Aufstellung"
-        )
-
-        .setDescription(
-
-`📅 Aufstellungsdatum: ${datum}
-🕗 Uhrzeit: ${config.meetingHour}
-
-━━━━━━━━━━━━━━
-
-✅ Dabei (${status.dabei.length})
-${status.dabei.join("\n") || "-"}
-
-━━━━━━━━━━━━━━
-
-❌ Nicht dabei (${status.nichtDabei.length})
-${status.nichtDabei.join("\n") || "-"}
-
-━━━━━━━━━━━━━━
-
-❓ Unsicher (${status.unsicher.length})
-${status.unsicher.join("\n") || "-"}
-
-━━━━━━━━━━━━━━
-
-⏳ Keine Rückmeldung (${status.offen.length})
-${status.offen.join("\n") || "-"}`
-
-        );
-
-}
-
+const storage = require("./storage");
 
 
 async function sendAufstellung(client) {
 
+    const channel = await client.channels.fetch(
+        config.channelId
+    );
 
-    const channel =
-        await client.channels.fetch(
-            config.channelId
+
+    const guild = channel.guild;
+
+
+    const role = guild.roles.cache.find(
+        r => r.name === config.roleName
+    );
+
+
+    const date = new Date();
+
+    date.setDate(
+        date.getDate() + 1
+    );
+
+
+    const datum =
+        date.toLocaleDateString(
+            "de-DE"
         );
 
 
-    const guild =
-        channel.guild;
+    const members = role
+        ? role.members.map(
+            member =>
+                `❌ ${member.displayName}`
+        )
+        : [];
 
 
+    const embed = new EmbedBuilder()
 
-    const status =
-        await getStatus(
-            client,
-            guild
+        .setTitle(
+            "🔥 Vatos MC Aufstellung"
+        )
+
+        .setDescription(
+
+`📅 **Aufstellung:** ${datum}
+🕗 **Uhrzeit:** ${config.meetingHour}
+
+Reagiere mit ✅ wenn du dabei bist.
+
+**Teilnehmer:**
+${members.length ? members.join("\n") : "Noch keine Rückmeldungen"}
+
+`
+        )
+
+        .setColor(
+            0xff0000
         );
-
-
-
-    const embed =
-        createEmbed(
-            status
-        );
-
 
 
     const message =
         await channel.send({
 
-            embeds: [
+            content:
+                role
+                ? `<@&${role.id}>`
+                : "",
+
+            embeds:[
                 embed
             ]
 
         });
 
 
-
     await message.react("✅");
-    await message.react("❌");
-    await message.react("❓");
 
+
+    storage.save({
+
+        messageId:
+            message.id,
+
+        channelId:
+            channel.id,
+
+        dabei: []
+
+    });
 
 
     return message;
@@ -153,11 +102,8 @@ async function sendAufstellung(client) {
 }
 
 
-
 module.exports = {
 
-    sendAufstellung,
-    createEmbed,
-    getStatus
+    sendAufstellung
 
 };
