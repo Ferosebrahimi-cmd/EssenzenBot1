@@ -4,7 +4,7 @@ const {
 
 
 const handleReaction =
-    require("../Aufstellung/reactions");
+    require("../aufstellung/reactions");
 
 
 module.exports = {
