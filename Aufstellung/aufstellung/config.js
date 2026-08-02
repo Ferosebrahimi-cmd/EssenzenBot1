@@ -3,14 +3,14 @@ module.exports = {
     // Kanal-ID für die Aufstellung
     channelId: "1516549299834458127",
 
-    // Rolle, die berücksichtigt werden soll
+    // Rolle, die erwähnt werden soll
     roleName: "╠═══════🔥Vatos MC🔥════════╣",
 
-    // Uhrzeit der täglichen Erinnerung
-    hour: 21,
-    minute: 0,
+    // Testmodus: alle 5 Minuten
+    hour: "*",
+    minute: "*/5",
 
-    // Uhrzeit der Aufstellung
+    // Uhrzeit der eigentlichen Aufstellung
     meetingHour: "20:00"
 
 };
