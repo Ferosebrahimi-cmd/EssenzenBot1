@@ -54,7 +54,8 @@ async function sendAufstellung(client) {
 
 
 
-    // Alte Nachricht löschen
+
+    // Alte Aufstellung löschen
 
     const alte =
         load();
@@ -78,10 +79,10 @@ async function sendAufstellung(client) {
             );
 
 
-        } catch {
+        } catch(error) {
 
             console.log(
-                "Keine alte Aufstellung vorhanden"
+                "ℹ️ Keine alte Aufstellung zum Löschen"
             );
 
         }
@@ -90,7 +91,8 @@ async function sendAufstellung(client) {
 
 
 
-    // Rollenmitglieder holen
+
+    // Alle Mitglieder der Rolle holen
 
     const mitglieder =
         role.members.map(
@@ -107,12 +109,15 @@ async function sendAufstellung(client) {
 
 
 
+
     const datum =
         new Date(
             Date.now() + 86400000
         ).toLocaleDateString(
             "de-DE"
         );
+
+
 
 
 
@@ -167,11 +172,12 @@ name =>
 
 
 
+
+
+    // Nachricht ohne Rollen-Ping senden
+
     const message =
         await channel.send({
-
-            content:
-            `<@&${role.id}>`,
 
             embeds:[
                 embed
@@ -181,26 +187,40 @@ name =>
 
 
 
+
+
+    // Reaktionen setzen
+
     await message.react("✅");
+
     await message.react("❌");
 
 
+
+
+
+    // Neue Aufstellung speichern
 
     save({
 
         messageId:
             message.id,
 
+
         channelId:
             channel.id,
 
+
         alle:
             mitglieder,
+
 
         dabei:
             []
 
     });
+
+
 
 
 
@@ -217,5 +237,7 @@ name =>
 
 
 module.exports = {
+
     sendAufstellung
+
 };
