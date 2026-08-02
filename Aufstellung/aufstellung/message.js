@@ -23,20 +23,19 @@ async function sendAufstellung(client) {
         );
 
 
-
     const guild =
         channel.guild;
 
 
 
-    // Mitglieder neu laden
     await guild.members.fetch();
 
 
 
     const role =
         guild.roles.cache.find(
-            r => r.name === config.roleName
+            r =>
+            r.name === config.roleName
         );
 
 
@@ -48,14 +47,14 @@ async function sendAufstellung(client) {
             config.roleName
         );
 
-        return;
+        return null;
 
     }
 
 
 
 
-    // Alte Aufstellung löschen
+    // alte Aufstellung löschen
 
     const alte =
         load();
@@ -79,10 +78,10 @@ async function sendAufstellung(client) {
             );
 
 
-        } catch(error) {
+        } catch {
 
             console.log(
-                "ℹ️ Keine alte Aufstellung zum Löschen"
+                "ℹ️ Alte Nachricht nicht gefunden"
             );
 
         }
@@ -92,10 +91,11 @@ async function sendAufstellung(client) {
 
 
 
-    // Alle Mitglieder der Rolle holen
+    // WICHTIG: Collection richtig umwandeln
 
     const mitglieder =
-        role.members.map(
+        [...role.members.values()]
+        .map(
             member =>
             member.displayName
         );
@@ -103,17 +103,17 @@ async function sendAufstellung(client) {
 
 
     console.log(
-        "👥 Mitglieder gefunden:",
-        mitglieder
+        "👥 Mitglieder gespeichert:",
+        mitglieder.length
     );
-
 
 
 
     const datum =
         new Date(
             Date.now() + 86400000
-        ).toLocaleDateString(
+        )
+        .toLocaleDateString(
             "de-DE"
         );
 
@@ -144,7 +144,6 @@ async function sendAufstellung(client) {
 Noch niemand
 
 
-
 ━━━━━━━━━━━━━━
 
 
@@ -153,10 +152,12 @@ Noch niemand
 ${
 mitglieder.length
 ?
-mitglieder.map(
+mitglieder
+.map(
 name =>
 `❌ ${name}`
-).join("\n")
+)
+.join("\n")
 :
 "Keine Mitglieder gefunden"
 }
@@ -174,8 +175,6 @@ name =>
 
 
 
-    // Nachricht ohne Rollen-Ping senden
-
     const message =
         await channel.send({
 
@@ -187,19 +186,12 @@ name =>
 
 
 
-
-
-    // Reaktionen setzen
-
     await message.react("✅");
 
     await message.react("❌");
 
 
 
-
-
-    // Neue Aufstellung speichern
 
     save({
 
@@ -212,7 +204,7 @@ name =>
 
 
         alle:
-            mitglieder,
+            [...mitglieder],
 
 
         dabei:
@@ -222,10 +214,10 @@ name =>
 
 
 
-
-
     console.log(
-        "✅ Neue Aufstellung gespeichert"
+        "💾 Aufstellung gespeichert:",
+        mitglieder.length,
+        "Mitglieder"
     );
 
 
