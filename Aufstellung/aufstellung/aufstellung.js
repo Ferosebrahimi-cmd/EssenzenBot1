@@ -3,12 +3,11 @@ const {
 } = require("discord.js");
 
 
-const config =
-    require("./config");
-
+const config = require("./config");
 
 const {
-    save
+    save,
+    load
 } = require("./storage");
 
 
@@ -16,9 +15,7 @@ const {
 async function sendAufstellung(client) {
 
 
-    console.log(
-        "📋 Erstelle neue Aufstellung..."
-    );
+    console.log("📋 Erstelle neue Aufstellung...");
 
 
 
@@ -34,6 +31,10 @@ async function sendAufstellung(client) {
 
 
 
+    await guild.members.fetch();
+
+
+
     const role =
         guild.roles.cache.find(
             r =>
@@ -44,20 +45,57 @@ async function sendAufstellung(client) {
 
     if (!role) {
 
-
         console.log(
             "❌ Rolle nicht gefunden:",
             config.roleName
         );
 
-
-        return;
+        return null;
 
     }
 
 
 
-    // Mitglieder richtig auslesen
+
+    // Alte Aufstellung löschen
+
+    const alte =
+        load();
+
+
+
+    if (alte.messageId) {
+
+        try {
+
+            const alteNachricht =
+                await channel.messages.fetch(
+                    alte.messageId
+                );
+
+
+            await alteNachricht.delete();
+
+
+            console.log(
+                "🗑️ Alte Aufstellung gelöscht"
+            );
+
+
+        } catch {
+
+            console.log(
+                "ℹ️ Alte Aufstellung nicht gefunden"
+            );
+
+        }
+
+    }
+
+
+
+
+    // Mitglieder speichern
 
     const mitglieder =
         [...role.members.values()]
@@ -70,8 +108,9 @@ async function sendAufstellung(client) {
 
     console.log(
         "👥 Mitglieder gefunden:",
-        mitglieder
+        mitglieder.length
     );
+
 
 
 
@@ -116,16 +155,12 @@ Noch niemand
 
 **❌ Keine Rückmeldung**
 
-${mitglieder.length
-?
+${
 mitglieder.map(
 name =>
 `❌ ${name}`
 ).join("\n")
-:
-"Keine Mitglieder gefunden"
 }
-
 
 `
 
@@ -139,7 +174,6 @@ name =>
 
 
 
-
     const message =
         await channel.send({
 
@@ -148,6 +182,7 @@ name =>
             ]
 
         });
+
 
 
 
@@ -182,22 +217,16 @@ name =>
 
 
     console.log(
-        "💾 Neue Aufstellung gespeichert"
-    );
-
-
-    console.log(
-        "Gespeicherte Mitglieder:",
-        mitglieder.length
+        "💾 Aufstellung gespeichert:",
+        mitglieder.length,
+        "Mitglieder"
     );
 
 
 
     return message;
 
-
 }
-
 
 
 
