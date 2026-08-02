@@ -107,9 +107,9 @@ async function sendAufstellung(client) {
         .setDescription(
 
 `
-📅 **Datum:** ${datum}
+📅 **Datum:** **${datum}**
 
-🕗 **Uhrzeit:** ${config.meetingHour}
+🕗 **Uhrzeit:** **${config.meetingHour}**
 
 ━━━━━━━━━━━━━━
 
