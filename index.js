@@ -84,28 +84,7 @@ const client = new Client({
 // Reaction Test
 // =========================
 
-client.on("messageReactionAdd", (reaction, user) => {
 
-    console.log(
-        "🔥 TEST REACTION:",
-        user.tag,
-        reaction.emoji.name
-    );
-
-});
-
-
-client.on("raw", packet => {
-
-    if (packet.t === "MESSAGE_REACTION_ADD") {
-
-        console.log(
-            "🔥 RAW REACTION EVENT ERHALTEN"
-        );
-
-    }
-
-});
 
 
 // =========================

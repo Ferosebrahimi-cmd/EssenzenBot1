@@ -6,9 +6,9 @@ module.exports = {
     // Rolle, die erwähnt werden soll
     roleName: "╠═══════🔥Vatos MC🔥════════╣",
 
-    // Testmodus: alle 5 Minuten
-    hour: "*",
-    minute: "*/5",
+    // Täglich um 21:00 Uhr
+    hour: "21",
+    minute: "0",
 
     // Uhrzeit der eigentlichen Aufstellung
     meetingHour: "20:00"
