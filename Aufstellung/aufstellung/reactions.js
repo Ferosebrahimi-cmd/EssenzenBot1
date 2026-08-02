@@ -17,26 +17,40 @@ const config =
 
 module.exports = {
 
-
     name: Events.MessageReactionAdd,
 
 
     async execute(reaction, user) {
 
 
-        // Bot ignorieren
+        console.log("================================");
+        console.log("🔥 REAKTION ERKANNT");
+        console.log("User:", user.tag);
+        console.log("Emoji:", reaction.emoji.name);
+        console.log("Message:", reaction.message.id);
+        console.log("================================");
+
+
+
+        // Bots ignorieren
         if (user.bot)
             return;
 
 
 
+        // Partials laden
         if (reaction.partial) {
 
             try {
 
                 await reaction.fetch();
 
-            } catch {
+            } catch(error) {
+
+                console.error(
+                    "❌ Reaction Fetch Fehler:",
+                    error
+                );
 
                 return;
 
@@ -46,30 +60,79 @@ module.exports = {
 
 
 
-        const data =
+
+        let data =
             load();
 
 
 
+        // Falls keine Daten existieren
+        if (!data) {
+
+            data = {};
+
+        }
+
+
+
+        // Sicherheit für Arrays
+
+        if (!Array.isArray(data.alle)) {
+
+            data.alle = [];
+
+        }
+
+
+        if (!Array.isArray(data.dabei)) {
+
+            data.dabei = [];
+
+        }
+
+
+
+
+
+        // Nur aktuelle Aufstellung
+
         if (
             !data.messageId ||
             reaction.message.id !== data.messageId
-        )
+        ) {
+
             return;
 
+        }
 
+
+
+
+
+
+        // Nur diese Emojis
 
         if (
             reaction.emoji.name !== "✅" &&
             reaction.emoji.name !== "❌"
-        )
+        ) {
+
             return;
+
+        }
+
 
 
 
 
         const guild =
             reaction.message.guild;
+
+
+        if (!guild)
+            return;
+
+
 
 
 
@@ -84,17 +147,13 @@ module.exports = {
 
 
 
-        if (!Array.isArray(data.dabei)) {
-
-            data.dabei = [];
-
-        }
 
 
 
-        // =================
+
+        // =====================
         // ✅ Dabei
-        // =================
+        // =====================
 
         if (
             reaction.emoji.name === "✅"
@@ -102,22 +161,36 @@ module.exports = {
 
 
             if (
-                !data.dabei.includes(nickname)
+                !data.dabei.includes(
+                    nickname
+                )
             ) {
+
 
                 data.dabei.push(
                     nickname
                 );
 
+
+                console.log(
+                    "✅ Dabei:",
+                    nickname
+                );
+
+
             }
+
 
         }
 
 
 
-        // =================
+
+
+
+        // =====================
         // ❌ Nicht dabei
-        // =================
+        // =====================
 
         if (
             reaction.emoji.name === "❌"
@@ -130,7 +203,15 @@ module.exports = {
                     name !== nickname
                 );
 
+
+            console.log(
+                "❌ Entfernt:",
+                nickname
+            );
+
+
         }
+
 
 
 
@@ -140,11 +221,19 @@ module.exports = {
 
 
 
+
+
+        // Wer fehlt noch?
+
         const keine =
             data.alle.filter(
                 name =>
                 !data.dabei.includes(name)
             );
+
+
+
+
 
 
 
@@ -158,6 +247,10 @@ module.exports = {
 
 
 
+
+
+
+
         const embed =
             new EmbedBuilder()
 
@@ -165,19 +258,22 @@ module.exports = {
                 "🔥 Vatos MC Aufstellung"
             )
 
+
             .setDescription(
 
-`📅 **Datum:** ${datum}
+`
+📅 **Datum:** ${datum}
+
 🕗 **Uhrzeit:** ${config.meetingHour}
 
 
 ━━━━━━━━━━━━━━
 
 
-**✅ Dabei:**
+**✅ Dabei**
 
 ${
-data.dabei.length
+data.dabei.length > 0
 ?
 data.dabei.map(
 name =>
@@ -192,10 +288,10 @@ name =>
 ━━━━━━━━━━━━━━
 
 
-**❌ Keine Rückmeldung:**
+**❌ Keine Rückmeldung**
 
 ${
-keine.length
+keine.length > 0
 ?
 keine.map(
 name =>
@@ -209,9 +305,13 @@ name =>
 
             )
 
+
             .setColor(
                 0xff0000
             );
+
+
+
 
 
 
@@ -224,7 +324,7 @@ name =>
         });
 
 
-    }
 
+    }
 
 };
