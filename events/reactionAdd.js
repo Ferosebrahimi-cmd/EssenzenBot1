@@ -3,7 +3,6 @@ const {
     EmbedBuilder
 } = require("discord.js");
 
-const config = require("../Aufstellung/aufstellung/config");
 const {
     load,
     save
@@ -41,17 +40,28 @@ module.exports = {
             return;
 
 
-        const data = load();
+
+        let data = load();
 
 
         if (!data)
             return;
 
 
+
         if (
             reaction.message.id !== data.messageId
         )
             return;
+
+
+
+        // Falls alte Speicherung benutzt wurde
+        if (!Array.isArray(data.dabei)) {
+
+            data.dabei = [];
+
+        }
 
 
 
@@ -87,27 +97,21 @@ module.exports = {
             );
 
 
-        const dabeiText =
-            data.dabei.length
-            ?
-            data.dabei.map(
-                n => `✅ ${n}`
-            ).join("\n")
-            :
-            "Noch niemand";
-
-
         embed.setDescription(
 
 `📅 **Aufstellung**
 
 
 **✅ Dabei:**
-${dabeiText}
+${data.dabei.length
+? data.dabei.map(
+    n => `✅ ${n}`
+).join("\n")
+: "Noch niemand"}
 
 
 **❌ Keine Rückmeldung:**
-Keine
+Noch keine Auswertung
 
 `
 
