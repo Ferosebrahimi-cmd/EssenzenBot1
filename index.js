@@ -332,6 +332,15 @@ client.on(
 // =========================
 // Discord Login
 // =========================
+client.on("messageReactionAdd", (reaction, user) => {
+
+    console.log(
+        "TEST REACTION:",
+        user.tag,
+        reaction.emoji.name
+    );
+
+});
 
 client.login(
     process.env.TOKEN
