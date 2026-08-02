@@ -3,12 +3,16 @@ const {
     EmbedBuilder
 } = require("discord.js");
 
+
 const {
     load,
     save
 } = require("./storage");
 
-const config = require("./config");
+
+const config =
+    require("./config");
+
 
 
 module.exports = {
@@ -23,19 +27,26 @@ module.exports = {
             return;
 
 
+
         if (reaction.partial) {
 
             try {
 
                 await reaction.fetch();
 
-            } catch {
+            } catch(error) {
+
+                console.error(
+                    "❌ Reaction Fetch Fehler:",
+                    error
+                );
 
                 return;
 
             }
 
         }
+
 
 
         if (
@@ -49,15 +60,23 @@ module.exports = {
 
 
 
-        let data = load();
+
+        let data =
+            load();
 
 
-        if (!data)
+
+        console.log(
+            "📂 GELADENE DATEN:",
+            data
+        );
+
+
+
+        if (!data.messageId)
             return;
 
 
-
-        // Nur aktuelle Aufstellung
 
         if (
             reaction.message.id !== data.messageId
@@ -69,8 +88,15 @@ module.exports = {
 
 
 
+
         const guild =
             reaction.message.guild;
+
+
+        if (!guild)
+            return;
+
+
 
 
         const member =
@@ -84,57 +110,77 @@ module.exports = {
 
 
 
+
         // Sicherheit
 
-        const alle =
-            Array.isArray(data.alle)
-            ? [...data.alle]
-            : [];
+        if (
+            !Array.isArray(data.alle)
+        ) {
+
+            data.alle = [];
+
+        }
 
 
-        let dabei =
-            Array.isArray(data.dabei)
-            ? [...data.dabei]
-            : [];
+        if (
+            !Array.isArray(data.dabei)
+        ) {
+
+            data.dabei = [];
+
+        }
 
 
 
 
+
+        // ✅ Hinzufügen
 
         if (
             reaction.emoji.name === "✅"
         ) {
 
+
             if (
-                !dabei.includes(nickname)
+                !data.dabei.includes(
+                    nickname
+                )
             ) {
 
-                dabei.push(
+                data.dabei.push(
                     nickname
                 );
 
             }
 
+
         }
 
 
+
+
+
+        // ❌ Entfernen
 
         if (
             reaction.emoji.name === "❌"
         ) {
 
-            dabei =
-                dabei.filter(
+
+            data.dabei =
+                data.dabei.filter(
                     name =>
                     name !== nickname
                 );
+
 
         }
 
 
 
-        // Wichtig:
-        // ALLE bleibt erhalten
+
+        // WICHTIG:
+        // alle bleibt unverändert
 
         save({
 
@@ -145,10 +191,10 @@ module.exports = {
                 data.channelId,
 
             alle:
-                alle,
+                data.alle,
 
             dabei:
-                dabei
+                data.dabei
 
         });
 
@@ -156,11 +202,10 @@ module.exports = {
 
 
 
-
         const keine =
-            alle.filter(
+            data.alle.filter(
                 name =>
-                !dabei.includes(name)
+                !data.dabei.includes(name)
             );
 
 
@@ -175,12 +220,15 @@ module.exports = {
 
 
 
+
+
         const embed =
             new EmbedBuilder()
 
             .setTitle(
                 "🔥 Vatos MC Aufstellung"
             )
+
 
             .setDescription(
 
@@ -196,15 +244,16 @@ module.exports = {
 **✅ Dabei**
 
 ${
-dabei.length
+data.dabei.length
 ?
-dabei.map(
+data.dabei.map(
 name =>
 `✅ ${name}`
 ).join("\n")
 :
 "Noch niemand"
 }
+
 
 
 ━━━━━━━━━━━━━━
@@ -227,6 +276,7 @@ name =>
 
             )
 
+
             .setColor(
                 0xff0000
             );
@@ -234,9 +284,10 @@ name =>
 
 
 
+
         await reaction.message.edit({
 
-            embeds:[
+            embeds: [
                 embed
             ]
 
@@ -247,6 +298,12 @@ name =>
         console.log(
             "✅ Aufstellung aktualisiert:",
             nickname
+        );
+
+
+        console.log(
+            "👥 Noch offen:",
+            keine
         );
 
 
