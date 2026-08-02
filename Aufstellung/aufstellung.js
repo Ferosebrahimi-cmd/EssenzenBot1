@@ -2,7 +2,6 @@ const {
     EmbedBuilder
 } = require("discord.js");
 
-
 const config = require("./config");
 
 const {
@@ -11,12 +10,9 @@ const {
 } = require("./storage");
 
 
-
 async function sendAufstellung(client) {
 
-
     console.log("📋 Erstelle neue Aufstellung...");
-
 
 
     const channel =
@@ -25,14 +21,11 @@ async function sendAufstellung(client) {
         );
 
 
-
     const guild =
         channel.guild;
 
 
-
     await guild.members.fetch();
-
 
 
     const role =
@@ -40,7 +33,6 @@ async function sendAufstellung(client) {
             r =>
             r.name === config.roleName
         );
-
 
 
     if (!role) {
@@ -55,13 +47,9 @@ async function sendAufstellung(client) {
     }
 
 
-
-
     // Alte Aufstellung löschen
 
-    const alte =
-        load();
-
+    const alte = load();
 
 
     if (alte.messageId) {
@@ -73,19 +61,13 @@ async function sendAufstellung(client) {
                     alte.messageId
                 );
 
-
             await alteNachricht.delete();
-
-
-            console.log(
-                "🗑️ Alte Aufstellung gelöscht"
-            );
 
 
         } catch {
 
             console.log(
-                "ℹ️ Alte Aufstellung nicht gefunden"
+                "ℹ️ Alte Nachricht nicht gefunden"
             );
 
         }
@@ -94,8 +76,7 @@ async function sendAufstellung(client) {
 
 
 
-
-    // Mitglieder speichern
+    // Mitglieder holen
 
     const mitglieder =
         [...role.members.values()]
@@ -106,15 +87,6 @@ async function sendAufstellung(client) {
 
 
 
-    console.log(
-        "👥 Mitglieder gefunden:",
-        mitglieder.length
-    );
-
-
-
-
-
     const datum =
         new Date(
             Date.now() + 86400000
@@ -122,8 +94,6 @@ async function sendAufstellung(client) {
         .toLocaleDateString(
             "de-DE"
         );
-
-
 
 
 
@@ -141,11 +111,10 @@ async function sendAufstellung(client) {
 
 🕗 **Uhrzeit:** ${config.meetingHour}
 
-
 ━━━━━━━━━━━━━━
 
 
-**✅ Dabei**
+**✅ Dabei (0)**
 
 Noch niemand
 
@@ -153,14 +122,38 @@ Noch niemand
 ━━━━━━━━━━━━━━
 
 
-**❌ Keine Rückmeldung**
+**❌ Nicht dabei (0)**
+
+Noch niemand
+
+
+━━━━━━━━━━━━━━
+
+
+**❔ Keine Rückmeldung (${mitglieder.length})**
 
 ${
+mitglieder.length
+?
 mitglieder.map(
 name =>
-`❌ ${name}`
+`❔ ${name}`
 ).join("\n")
+:
+"Niemand"
 }
+
+
+━━━━━━━━━━━━━━
+
+
+Reagiere mit:
+
+✅ = Dabei
+
+❌ = Nicht dabei
+
+❔ = Keine Rückmeldung
 
 `
 
@@ -169,8 +162,6 @@ name =>
         .setColor(
             0xff0000
         );
-
-
 
 
 
@@ -185,13 +176,9 @@ name =>
 
 
 
-
-
     await message.react("✅");
-
     await message.react("❌");
-
-
+    await message.react("❔");
 
 
 
@@ -200,16 +187,16 @@ name =>
         messageId:
             message.id,
 
-
         channelId:
             channel.id,
-
 
         alle:
             [...mitglieder],
 
-
         dabei:
+            [],
+
+        nichtDabei:
             []
 
     });
@@ -223,11 +210,9 @@ name =>
     );
 
 
-
     return message;
 
 }
-
 
 
 module.exports = {
