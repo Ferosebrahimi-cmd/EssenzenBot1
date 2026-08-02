@@ -29,6 +29,11 @@ async function sendAufstellung(client) {
 
 
 
+    // Mitglieder neu laden
+    await guild.members.fetch();
+
+
+
     const role =
         guild.roles.cache.find(
             r => r.name === config.roleName
@@ -39,7 +44,8 @@ async function sendAufstellung(client) {
     if (!role) {
 
         console.log(
-            "❌ Rolle nicht gefunden"
+            "❌ Rolle nicht gefunden:",
+            config.roleName
         );
 
         return;
@@ -48,15 +54,13 @@ async function sendAufstellung(client) {
 
 
 
-    // Alte Aufstellung löschen
+    // Alte Nachricht löschen
 
     const alte =
         load();
 
 
-    if (
-        alte.messageId
-    ) {
+    if (alte.messageId) {
 
         try {
 
@@ -77,7 +81,7 @@ async function sendAufstellung(client) {
         } catch {
 
             console.log(
-                "ℹ️ Keine alte Nachricht gefunden"
+                "Keine alte Aufstellung vorhanden"
             );
 
         }
@@ -86,8 +90,7 @@ async function sendAufstellung(client) {
 
 
 
-
-    // Mitglieder holen
+    // Rollenmitglieder holen
 
     const mitglieder =
         role.members.map(
@@ -95,6 +98,12 @@ async function sendAufstellung(client) {
             member.displayName
         );
 
+
+
+    console.log(
+        "👥 Mitglieder gefunden:",
+        mitglieder
+    );
 
 
 
@@ -107,7 +116,6 @@ async function sendAufstellung(client) {
 
 
 
-
     const embed =
         new EmbedBuilder()
 
@@ -115,10 +123,10 @@ async function sendAufstellung(client) {
             "🔥 Vatos MC Aufstellung"
         )
 
-
         .setDescription(
 
-`📅 **Datum:** ${datum}
+`
+📅 **Datum:** ${datum}
 
 🕗 **Uhrzeit:** ${config.meetingHour}
 
@@ -126,7 +134,7 @@ async function sendAufstellung(client) {
 ━━━━━━━━━━━━━━
 
 
-**✅ Dabei:**
+**✅ Dabei**
 
 Noch niemand
 
@@ -135,7 +143,7 @@ Noch niemand
 ━━━━━━━━━━━━━━
 
 
-**❌ Keine Rückmeldung:**
+**❌ Keine Rückmeldung**
 
 ${
 mitglieder.length
@@ -159,7 +167,6 @@ name =>
 
 
 
-
     const message =
         await channel.send({
 
@@ -174,12 +181,8 @@ name =>
 
 
 
-
     await message.react("✅");
-
     await message.react("❌");
-
-
 
 
 
@@ -188,14 +191,11 @@ name =>
         messageId:
             message.id,
 
-
         channelId:
             channel.id,
 
-
         alle:
             mitglieder,
-
 
         dabei:
             []
@@ -217,7 +217,5 @@ name =>
 
 
 module.exports = {
-
     sendAufstellung
-
 };
