@@ -38,7 +38,11 @@ app.get("/", (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`🌐 Webserver läuft auf Port ${PORT}`);
+
+    console.log(
+        `🌐 Webserver läuft auf Port ${PORT}`
+    );
+
 });
 
 
@@ -56,7 +60,9 @@ const client = new Client({
 
         GatewayIntentBits.MessageContent,
 
-        GatewayIntentBits.GuildMembers
+        GatewayIntentBits.GuildMembers,
+
+        GatewayIntentBits.GuildMessageReactions
 
     ]
 
@@ -69,7 +75,10 @@ const client = new Client({
 
 client.commands = new Collection();
 
-const commandsPath = path.join(__dirname, "commands");
+const commandsPath = path.join(
+    __dirname,
+    "commands"
+);
 
 
 if (fs.existsSync(commandsPath)) {
@@ -113,7 +122,10 @@ if (fs.existsSync(commandsPath)) {
 // Events laden
 // =========================
 
-const eventsPath = path.join(__dirname, "events");
+const eventsPath = path.join(
+    __dirname,
+    "events"
+);
 
 
 console.log(
@@ -179,10 +191,15 @@ client.once("ready", () => {
         status: "online",
 
         activities: [
+
             {
+
                 name: "Essenzen verwalten",
+
                 type: 0
+
             }
+
         ]
 
     });
@@ -213,7 +230,7 @@ client.once("ready", () => {
     console.log("==============================");
 
 
-    // Aufstellung Erinnerung starten
+    // Aufstellung Scheduler starten
     startScheduler(client);
 
 
@@ -272,15 +289,19 @@ client.on(
                 interaction.deferred
             ) {
 
+
                 await interaction.followUp(
                     antwort
                 );
 
+
             } else {
+
 
                 await interaction.reply(
                     antwort
                 );
+
 
             }
 
@@ -296,7 +317,9 @@ client.on(
 // Discord Login
 // =========================
 
-client.login(process.env.TOKEN)
+client.login(
+    process.env.TOKEN
+)
 
 .then(() => {
 
