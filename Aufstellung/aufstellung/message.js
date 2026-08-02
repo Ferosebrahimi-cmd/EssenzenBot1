@@ -5,6 +5,7 @@ const {
 const config = require("./config");
 
 const {
+    load,
     save
 } = require("./storage");
 
@@ -20,6 +21,45 @@ async function sendAufstellung(client) {
 
     const guild =
         channel.guild;
+
+
+
+    // =========================
+    // Alte Aufstellung löschen
+    // =========================
+
+    const alteDaten = load();
+
+
+    if (alteDaten.messageId) {
+
+        try {
+
+            const alteNachricht =
+                await channel.messages.fetch(
+                    alteDaten.messageId
+                );
+
+
+            await alteNachricht.delete();
+
+
+            console.log(
+                "🗑️ Alte Aufstellung gelöscht"
+            );
+
+
+        } catch (error) {
+
+
+            console.log(
+                "ℹ️ Keine alte Aufstellung gefunden"
+            );
+
+
+        }
+
+    }
 
 
 
@@ -96,6 +136,7 @@ name =>
 
 
 
+
     const message =
         await channel.send({
 
@@ -117,14 +158,17 @@ name =>
 
 
 
-    // WICHTIG:
-    // komplette neue Aufstellung speichern
-    // alte Daten werden überschrieben
+
+    // =========================
+    // Neue Aufstellung speichern
+    // Alte Daten überschreiben
+    // =========================
 
     save({
 
         messageId:
             message.id,
+
 
         channelId:
             channel.id,
@@ -142,7 +186,7 @@ name =>
 
 
     console.log(
-        "🔄 Neue Aufstellung gespeichert - alte Daten gelöscht"
+        "🔄 Neue Aufstellung erstellt"
     );
 
 
