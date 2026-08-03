@@ -170,9 +170,18 @@ Reagiere mit:
 const message =
     await channel.send({
 
-        embeds:[
+        content:
+            `<@&${role.id}>`,
+
+        embeds: [
             embed
-        ]
+        ],
+
+        allowedMentions: {
+            roles: [
+                role.id
+            ]
+        }
 
     });
 
