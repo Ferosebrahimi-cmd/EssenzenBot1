@@ -7,6 +7,7 @@ function standardData() {
     return {
         messageId: null,
         channelId: null,
+        datum: null,
         alle: [],
         dabei: [],
         nichtDabei: []
@@ -24,7 +25,16 @@ function load() {
         const data = JSON.parse(
             fs.readFileSync(file, "utf8")
         );
-
+return {
+    messageId: data.messageId || null,
+    channelId: data.channelId || null,
+    datum: data.datum || null,
+    alle: Array.isArray(data.alle) ? data.alle : [],
+    dabei: Array.isArray(data.dabei) ? data.dabei : [],
+    nichtDabei: Array.isArray(data.nichtDabei)
+        ? data.nichtDabei
+        : []
+};
         return {
             messageId: data.messageId || null,
             channelId: data.channelId || null,
@@ -51,6 +61,7 @@ function save(data) {
         JSON.stringify({
             messageId: data.messageId,
             channelId: data.channelId,
+            datum: data.datum,
             alle: data.alle,
             dabei: data.dabei,
             nichtDabei: data.nichtDabei

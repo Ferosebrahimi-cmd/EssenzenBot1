@@ -87,14 +87,16 @@ async function sendAufstellung(client) {
 
 
 
-    const datum =
-        new Date(
-            Date.now() + 86400000
-        )
-        .toLocaleDateString(
-            "de-DE"
-        );
+    const morgen = new Date();
 
+morgen.setDate(
+    morgen.getDate() + 1
+);
+
+const datum =
+    morgen.toLocaleDateString(
+        "de-DE"
+    );
 
 
     const embed =
@@ -191,24 +193,21 @@ Reagiere mit:
 
 
 
-    save({
+  save({
 
-        messageId:
-            message.id,
+    messageId: message.id,
 
-        channelId:
-            channel.id,
+    channelId: channel.id,
 
-        alle:
-            [...mitglieder],
+    datum: datum,
 
-        dabei:
-            [],
+    alle: [...mitglieder],
 
-        nichtDabei:
-            []
+    dabei: [],
 
-    });
+    nichtDabei: []
+
+});
 
 
 
