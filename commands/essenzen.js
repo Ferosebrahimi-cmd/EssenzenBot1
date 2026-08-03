@@ -127,7 +127,7 @@ module.exports = {
 
 
                 liste +=
-                    `${i + 1}. ${name} - ${users[i].essenzen} Essenzen\n`;
+                    `${i + 1}. ${name} = ${users[i].essenzen} Essenzen\n`;
 
 
                 // Discord Embed Limit
