@@ -184,10 +184,7 @@ async function execute(reaction, user) {
 
         .setDescription(`
 
-📅 **Datum:** ${
-new Date(Date.now() + 86400000)
-.toLocaleDateString("de-DE")
-}
+📅 **Datum:** **${data.datum}**
 
 
 🕗 **Uhrzeit:** ${config.meetingHour}
