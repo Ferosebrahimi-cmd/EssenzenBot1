@@ -16,7 +16,12 @@ const path = require("path");
 // Aufstellung Modul
 // =========================
 
+// =========================
+// Aufstellung Modul
+// =========================
+
 const { startScheduler } = require("./Aufstellung/scheduler");
+const { sendAufstellung } = require("./Aufstellung/aufstellung");
 
 
 // =========================
@@ -195,7 +200,7 @@ if (fs.existsSync(eventsPath)) {
 // Bot Online
 // =========================
 
-client.once("ready", () => {
+client.once("ready", async () => {
 
 
     client.user.setPresence({
@@ -244,6 +249,8 @@ client.once("ready", () => {
 
     startScheduler(client);
 
+console.log("🚀 Starte manuelle Aufstellung...");
+await sendAufstellung(client);
 
 });
 
