@@ -21,7 +21,7 @@ const path = require("path");
 // =========================
 
 const { startScheduler } = require("./Aufstellung/scheduler");
-const { sendAufstellung } = require("./Aufstellung/aufstellung");
+
 
 
 // =========================
@@ -249,8 +249,7 @@ client.once("ready", async () => {
 
     startScheduler(client);
 
-console.log("🚀 Starte manuelle Aufstellung...");
-await sendAufstellung(client, true);
+
 
 });
 
