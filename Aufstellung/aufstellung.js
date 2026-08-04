@@ -9,10 +9,35 @@ const {
     load
 } = require("./storage");
 
-
-async function sendAufstellung(client) {
+async function sendAufstellung(client, heute = false) {
 
     console.log("📋 Erstelle neue Aufstellung...");
+
+
+    let datum;
+
+
+    if (heute) {
+
+        datum =
+            new Date().toLocaleDateString(
+                "de-DE"
+            );
+
+    } else {
+
+        const morgen = new Date();
+
+        morgen.setDate(
+            morgen.getDate() + 1
+        );
+
+        datum =
+            morgen.toLocaleDateString(
+                "de-DE"
+            );
+
+    }
 
 
     const channel =

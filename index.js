@@ -250,7 +250,7 @@ client.once("ready", async () => {
     startScheduler(client);
 
 console.log("🚀 Starte manuelle Aufstellung...");
-await sendAufstellung(client);
+await sendAufstellung(client, true);
 
 });
 
