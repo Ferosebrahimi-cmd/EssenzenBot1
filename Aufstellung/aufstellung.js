@@ -112,16 +112,7 @@ async function sendAufstellung(client, heute = false) {
 
 
 
-    const morgen = new Date();
 
-morgen.setDate(
-    morgen.getDate() + 1
-);
-
-const datum =
-    morgen.toLocaleDateString(
-        "de-DE"
-    );
 
 
     const embed =
