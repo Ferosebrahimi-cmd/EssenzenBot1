@@ -5,17 +5,40 @@ const {
     Client,
     GatewayIntentBits,
     Collection,
-    Partials
+    Partials,
+    Events
 } = require("discord.js");
 
 const fs = require("fs");
 const path = require("path");
+
+
+// =========================
+// Aufstellung Modul
+// =========================
+
+// =========================
+// Aufstellung Modul
+// =========================
+
 const { startScheduler } = require("./Aufstellung/scheduler");
-const { sendAufstellung } = require("./Aufstellung/aufstellung");
+const { synchronizeAufstellung } = require("./Aufstellung/syncReactions");
+
+
+
+// =========================
+// MongoDB verbinden
+// =========================
 
 require("./database/database");
 
+
+// =========================
+// Render Webserver
+// =========================
+
 const app = express();
+
 const PORT = process.env.PORT || 3000;
 
 app.get("/", (req, res) => {
@@ -23,121 +46,309 @@ app.get("/", (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`🌐 Webserver läuft auf Port ${PORT}`);
+
+    console.log(
+        `🌐 Webserver läuft auf Port ${PORT}`
+    );
+
 });
 
+
+// =========================
+// Discord Bot
+// =========================
+
 const client = new Client({
+
     intents: [
+
         GatewayIntentBits.Guilds,
+
         GatewayIntentBits.GuildMessages,
+
         GatewayIntentBits.MessageContent,
+
         GatewayIntentBits.GuildMembers,
+
         GatewayIntentBits.GuildMessageReactions
+
     ],
+
     partials: [
+
         Partials.Message,
+
         Partials.Channel,
+
         Partials.Reaction
+
     ]
+
 });
+
+
+// =========================
+// Reaction Test
+// =========================
+
+
+
+
+// =========================
+// Commands laden
+// =========================
 
 client.commands = new Collection();
 
-const commandsPath = path.join(__dirname, "commands");
+const commandsPath = path.join(
+    __dirname,
+    "commands"
+);
+
 
 if (fs.existsSync(commandsPath)) {
+
     const commandFiles = fs
         .readdirSync(commandsPath)
         .filter(file => file.endsWith(".js"));
 
+
     for (const file of commandFiles) {
-        const command = require(path.join(commandsPath, file));
+
+        const command = require(
+            path.join(commandsPath, file)
+        );
+
 
         if (command.data && command.execute) {
-            client.commands.set(command.data.name, command);
-            console.log(`✅ Command geladen: ${command.data.name}`);
+
+            client.commands.set(
+                command.data.name,
+                command
+            );
+
+
+            console.log(
+                `✅ Command geladen: ${command.data.name}`
+            );
+
         }
+
     }
+
 }
 
-const eventsPath = path.join(__dirname, "events");
 
-console.log("🔍 Suche Events:", eventsPath);
+// =========================
+// Events laden
+// =========================
+
+const eventsPath = path.join(
+    __dirname,
+    "events"
+);
+
+
+console.log(
+    "🔍 Suche Events:",
+    eventsPath
+);
+
 
 if (fs.existsSync(eventsPath)) {
+
+
     const eventFiles = fs
         .readdirSync(eventsPath)
         .filter(file => file.endsWith(".js"));
 
-    console.log("📁 Events:", eventFiles);
+
+    console.log(
+        "📁 Events:",
+        eventFiles
+    );
+
 
     for (const file of eventFiles) {
-        const event = require(path.join(eventsPath, file));
+
+
+        const event = require(
+            path.join(eventsPath, file)
+        );
+
 
         if (event.name && event.execute) {
-            client.on(event.name, (...args) => event.execute(...args, client));
-            console.log(`📂 Event geladen: ${event.name}`);
+
+
+            client.on(
+                event.name,
+                (...args) =>
+                    event.execute(...args, client)
+            );
+
+
+            console.log(
+                `📂 Event geladen: ${event.name}`
+            );
+
         }
+
     }
+
 }
 
-client.once("ready", async () => {
-    try {
-        client.user.setPresence({
-            status: "online",
-            activities: [
-                {
-                    name: "Essenzen verwalten",
-                    type: 0
-                }
-            ]
-        });
 
-        console.log("==============================");
-        console.log(`🤖 Bot: ${client.user.tag}`);
-        console.log(`📡 Server: ${client.guilds.cache.size}`);
-        console.log("🟢 Status: Online");
-        console.log("✅ Bot erfolgreich gestartet");
-        console.log("==============================");
+// =========================
+// Bot Online
+// =========================
 
-        // Einmalig beim nächsten Neustart eine Aufstellung posten.
-        
+client.once(Events.ClientReady, async () => {
 
-        // Anschließend täglich nach dem Zeitplan posten.
-        startScheduler(client);
-    } catch (error) {
-        console.error("❌ Fehler beim Starten der Aufstellung:", error);
-    }
-});
 
-client.on("interactionCreate", async interaction => {
-    if (!interaction.isChatInputCommand()) return;
+    client.user.setPresence({
 
-    const command = client.commands.get(interaction.commandName);
-    if (!command) return;
+        status: "online",
 
-    try {
-        await command.execute(interaction);
-    } catch (error) {
-        console.error(error);
+        activities: [
 
-        const antwort = {
-            content: "❌ Fehler beim Ausführen.",
-            ephemeral: true
-        };
+            {
 
-        if (interaction.replied || interaction.deferred) {
-            await interaction.followUp(antwort);
-        } else {
-            await interaction.reply(antwort);
-        }
-    }
-});
+                name: "Essenzen verwalten",
 
-client.login(process.env.TOKEN)
-    .then(() => {
-        console.log("🔑 Discord Login erfolgreich");
-    })
-    .catch(error => {
-        console.error("❌ Discord Login Fehler:", error);
+                type: 0
+
+            }
+
+        ]
+
     });
+
+
+    console.log("==============================");
+
+    console.log(
+        `🤖 Bot: ${client.user.tag}`
+    );
+
+
+    console.log(
+        `📡 Server: ${client.guilds.cache.size}`
+    );
+
+
+    console.log(
+        "🟢 Status: Online"
+    );
+
+
+    console.log(
+        "✅ Bot erfolgreich gestartet"
+    );
+
+
+    console.log("==============================");
+
+
+    await synchronizeAufstellung(client);
+    startScheduler(client);
+
+
+
+});
+
+
+// =========================
+// Slash Commands
+// =========================
+
+client.on(
+    "interactionCreate",
+    async interaction => {
+
+
+        if (!interaction.isChatInputCommand())
+            return;
+
+
+        const command =
+            client.commands.get(
+                interaction.commandName
+            );
+
+
+        if (!command)
+            return;
+
+
+        try {
+
+            await command.execute(
+                interaction
+            );
+
+
+        } catch (error) {
+
+
+            console.error(error);
+
+
+            const antwort = {
+
+                content:
+                    "❌ Fehler beim Ausführen.",
+
+                ephemeral: true
+
+            };
+
+
+            if (
+                interaction.replied ||
+                interaction.deferred
+            ) {
+
+
+                await interaction.followUp(
+                    antwort
+                );
+
+
+            } else {
+
+
+                await interaction.reply(
+                    antwort
+                );
+
+            }
+
+        }
+
+
+    }
+);
+
+
+// =========================
+// Discord Login
+// =========================
+
+client.login(
+    process.env.TOKEN
+)
+.then(() => {
+
+    console.log(
+        "🔑 Discord Login erfolgreich"
+    );
+
+})
+.catch(error => {
+
+    console.error(
+        "❌ Discord Login Fehler:",
+        error
+    );
+
+});

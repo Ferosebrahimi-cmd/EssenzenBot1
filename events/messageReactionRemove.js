@@ -7,9 +7,8 @@ module.exports = {
 
     name: "messageReactionRemove",
 
-    async execute(reaction, user, client) {
-
-        execute(reaction, user);
+    async execute(reaction, user) {
+        await execute(reaction, user);
 
     }
 
