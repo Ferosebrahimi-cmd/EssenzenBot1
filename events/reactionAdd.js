@@ -1,58 +1,28 @@
-const {
-    Events
-} = require("discord.js");
-
-
-const {
-    execute: handleReaction
-} = require("../Aufstellung/reactions");
-
+const { Events } = require("discord.js");
+const { execute: handleReaction } = require("../Aufstellung/reactions");
 
 module.exports = {
+  name: Events.MessageReactionAdd,
 
-    name: Events.MessageReactionAdd,
+  async execute(reaction, user) {
+    if (user.bot) return;
 
+    try {
+      if (reaction.partial) {
+        await reaction.fetch();
+      }
 
-    async execute(reaction, user) {
+      if (reaction.message.partial) {
+        await reaction.message.fetch();
+      }
 
+      console.log(
+        `🔥 Reaktion erkannt: ${reaction.emoji.name} von ${user.tag}`
+      );
 
-        console.log(
-            "🔥 REAKTION ERKANNT"
-        );
-
-
-        // Bot-Reaktionen ignorieren
-        if (user.bot) return;
-
-
-
-        if (reaction.partial) {
-
-            try {
-
-                await reaction.fetch();
-
-            } catch(error) {
-
-                console.error(
-                    "❌ Reaction Fetch Fehler:",
-                    error
-                );
-
-                return;
-
-            }
-
-        }
-
-
-
-        await handleReaction(
-            reaction,
-            user
-        );
-
-
+      await handleReaction(reaction, user);
+    } catch (error) {
+      console.error("❌ Fehler bei der Reaktionsverarbeitung:", error);
     }
-
+  }
 };
