@@ -77,7 +77,7 @@ async function synchronizeAufstellung(client) {
 
 
         // Wichtig: echte Discord-Reaktionen laden
-        await message.reactions.fetch();
+        
 
 
 
