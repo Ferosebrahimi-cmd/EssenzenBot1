@@ -23,10 +23,9 @@ module.exports = {
             });
 
 
-            await sendAufstellung(
-                interaction.client,
-                true
-            );
+           await sendAufstellung(
+    interaction.client
+);
 
 
             await interaction.editReply(
