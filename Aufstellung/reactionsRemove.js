@@ -1,176 +1,44 @@
+const { load, save } = require("./storage");
 const {
-    EmbedBuilder
-} = require("discord.js");
-
-const {
-    load,
-    save
-} = require("./storage");
-
-const config = require("./config");
-
+    enqueueUpdate,
+    normalizeData,
+    participantForMember,
+    isSelected,
+    removeParticipant,
+    buildEmbed
+} = require("./state");
 
 async function execute(reaction, user) {
+    if (user.bot) return;
 
-
-    if (user.bot)
-        return;
-
-
-    if (reaction.partial) {
-
+    return enqueueUpdate(async () => {
         try {
+            if (reaction.partial) await reaction.fetch();
+            if (reaction.message.partial) await reaction.message.fetch();
 
-            await reaction.fetch();
+            const data = normalizeData(load());
+            if (reaction.message.id !== data.messageId) return;
 
-        } catch {
+            const member = await reaction.message.guild.members.fetch(user.id);
+            const participant = participantForMember(data, member);
+            if (!participant) return;
 
-            return;
+            // Nur die Auswahl entfernen, deren Emoji tatsächlich gelöscht wurde.
+            if (reaction.emoji.name === "✅" && isSelected(data.dabei, participant)) {
+                data.dabei = removeParticipant(data.dabei, participant);
+            } else if (reaction.emoji.name === "❌" && isSelected(data.nichtDabei, participant)) {
+                data.nichtDabei = removeParticipant(data.nichtDabei, participant);
+            } else if (reaction.emoji.name !== "❔") {
+                return;
+            }
 
+            save(data);
+            await reaction.message.edit({ embeds: [buildEmbed(data)] });
+            console.log("↩️ Reaktion entfernt:", participant.name);
+        } catch (error) {
+            console.error("❌ Fehler beim Entfernen einer Aufstellungs-Reaktion:", error);
         }
-
-    }
-
-
-    const data = load();
-
-
-    if (reaction.message.id !== data.messageId)
-        return;
-
-
-
-    const member =
-        await reaction.message.guild.members.fetch(user.id);
-
-
-    const name =
-        member.displayName;
-
-
-
-    // entfernte Auswahl löschen
-
-    data.dabei =
-        data.dabei.filter(
-            n => n !== name
-        );
-
-
-    data.nichtDabei =
-        data.nichtDabei.filter(
-            n => n !== name
-        );
-
-
-
-    save(data);
-
-
-
-    const keineRueckmeldung =
-        data.alle.filter(
-
-            n =>
-            !data.dabei.includes(n) &&
-            !data.nichtDabei.includes(n)
-
-        );
-
-
-
-    const embed =
-        new EmbedBuilder()
-
-        .setTitle(
-            "🔥 Vatos MC Aufstellung"
-        )
-
-        .setDescription(`
-
-📅 **Datum:** ${
-new Date(Date.now()+86400000)
-.toLocaleDateString("de-DE")
-}
-
-🕗 **Uhrzeit:** ${config.meetingHour}
-
-
-━━━━━━━━━━━━━━
-
-
-**✅ Dabei (${data.dabei.length})**
-
-${
-data.dabei.length
-?
-data.dabei.map(n=>`✅ ${n}`).join("\n")
-:
-"Noch niemand"
-}
-
-
-━━━━━━━━━━━━━━
-
-
-**❌ Nicht dabei (${data.nichtDabei.length})**
-
-${
-data.nichtDabei.length
-?
-data.nichtDabei.map(n=>`❌ ${n}`).join("\n")
-:
-"Noch niemand"
-}
-
-
-━━━━━━━━━━━━━━
-
-
-**❔ Keine Rückmeldung (${keineRueckmeldung.length})**
-
-${
-keineRueckmeldung.map(n=>`❔ ${n}`).join("\n")
-}
-
-
-━━━━━━━━━━━━━━
-
-Reagiere mit:
-
-✅ = Dabei
-
-❌ = Nicht dabei
-
-❔ = Keine Rückmeldung
-
-`)
-
-        .setColor(0xff0000);
-
-
-
-    await reaction.message.edit({
-
-        embeds:[
-            embed
-        ]
-
     });
-
-
-    console.log(
-        "↩️ Reaktion entfernt:",
-        name,
-        "→ Keine Rückmeldung"
-    );
-
 }
 
-
-
-module.exports = {
-
-    execute
-
-};
+module.exports = { execute };

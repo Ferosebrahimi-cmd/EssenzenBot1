@@ -101,7 +101,7 @@ client.once("ready", async () => {
         console.log("==============================");
 
         // Einmalig beim nächsten Neustart eine Aufstellung posten.
-        await sendAufstellung(client);
+        
 
         // Anschließend täglich nach dem Zeitplan posten.
         startScheduler(client);

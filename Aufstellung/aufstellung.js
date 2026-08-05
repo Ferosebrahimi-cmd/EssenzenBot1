@@ -106,8 +106,10 @@ async function sendAufstellung(client, heute = false) {
     const mitglieder =
         [...role.members.values()]
         .map(
-            member =>
-            member.displayName
+            member => ({
+                id: member.id,
+                name: member.displayName
+            })
         );
 
 
@@ -154,8 +156,8 @@ ${
 mitglieder.length
 ?
 mitglieder.map(
-name =>
-`❔ **${name}**`
+mitglied =>
+`❔ **${mitglied.name}**`
 ).join("\n")
 :
 "Niemand"
