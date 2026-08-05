@@ -12,177 +12,159 @@ const config = require("./config");
 
 async function execute(reaction, user) {
 
-    if (user.bot) return;
+    try {
+
+        if (user.bot) return;
 
 
-    if (reaction.partial) {
+        if (reaction.partial) {
 
-        try {
+            try {
 
-            await reaction.fetch();
+                await reaction.fetch();
 
-        } catch {
+            } catch {
+
+                return;
+
+            }
+
+        }
+
+
+        const data = load();
+
+
+        if (reaction.message.id !== data.messageId)
+            return;
+
+
+
+        const member =
+            await reaction.message.guild.members.fetch(user.id);
+
+
+        const name =
+            member.displayName;
+
+
+
+        if (!data.dabei)
+            data.dabei = [];
+
+
+        if (!data.nichtDabei)
+            data.nichtDabei = [];
+
+
+
+        if (reaction.emoji.name === "✅") {
+
+
+            if (data.dabei.includes(name)) {
+
+
+                data.dabei =
+                    data.dabei.filter(
+                        n => n !== name
+                    );
+
+
+            } else {
+
+
+                data.nichtDabei =
+                    data.nichtDabei.filter(
+                        n => n !== name
+                    );
+
+
+                data.dabei.push(name);
+
+            }
+
+
+
+        } else if (reaction.emoji.name === "❌") {
+
+
+
+            if (data.nichtDabei.includes(name)) {
+
+
+                data.nichtDabei =
+                    data.nichtDabei.filter(
+                        n => n !== name
+                    );
+
+
+            } else {
+
+
+                data.dabei =
+                    data.dabei.filter(
+                        n => n !== name
+                    );
+
+
+                data.nichtDabei.push(name);
+
+            }
+
+
+
+        } else if (reaction.emoji.name === "❔") {
+
+
+
+            data.dabei =
+                data.dabei.filter(
+                    n => n !== name
+                );
+
+
+            data.nichtDabei =
+                data.nichtDabei.filter(
+                    n => n !== name
+                );
+
+
+
+        } else {
 
             return;
 
         }
 
-    }
-
-
-    const data = load();
-
-
-    if (reaction.message.id !== data.messageId)
-        return;
 
 
 
-    const member =
-        await reaction.message.guild.members.fetch(user.id);
-
-
-    const name =
-        member.displayName;
+        save(data);
 
 
 
-    // Sicherheit falls alte Speicherung
+        const keineRueckmeldung =
+            data.alle.filter(
 
-    if (!data.dabei)
-        data.dabei = [];
+                n =>
+                !data.dabei.includes(n) &&
+                !data.nichtDabei.includes(n)
 
-
-    if (!data.nichtDabei)
-        data.nichtDabei = [];
-
-
-
-    // =========================
-    // Auswahl Toggle System
-    // =========================
-
-
-    if (reaction.emoji.name === "✅") {
-
-
-        // Wenn bereits dabei -> zurücksetzen
-
-        if (data.dabei.includes(name)) {
-
-
-            data.dabei =
-                data.dabei.filter(
-                    n => n !== name
-                );
-
-
-        } else {
-
-
-            // Aus anderer Auswahl entfernen
-
-            data.nichtDabei =
-                data.nichtDabei.filter(
-                    n => n !== name
-                );
-
-
-            data.dabei.push(name);
-
-
-        }
-
-
-
-    } else if (reaction.emoji.name === "❌") {
-
-
-
-        // Wenn bereits nicht dabei -> zurücksetzen
-
-        if (data.nichtDabei.includes(name)) {
-
-
-            data.nichtDabei =
-                data.nichtDabei.filter(
-                    n => n !== name
-                );
-
-
-        } else {
-
-
-            data.dabei =
-                data.dabei.filter(
-                    n => n !== name
-                );
-
-
-            data.nichtDabei.push(name);
-
-
-        }
-
-
-
-    } else if (reaction.emoji.name === "❔") {
-
-
-
-        // Manuell zurück auf keine Rückmeldung
-
-
-        data.dabei =
-            data.dabei.filter(
-                n => n !== name
-            );
-
-
-        data.nichtDabei =
-            data.nichtDabei.filter(
-                n => n !== name
             );
 
 
 
-    } else {
 
-        return;
-
-    }
+        const embed =
+            new EmbedBuilder()
 
 
+            .setTitle(
+                "🔥 Vatos MC Aufstellung"
+            )
 
 
-    save(data);
-
-
-
-
-    const keineRueckmeldung =
-        data.alle.filter(
-
-            n =>
-            !data.dabei.includes(n) &&
-            !data.nichtDabei.includes(n)
-
-        );
-
-
-
-
-
-    const embed =
-        new EmbedBuilder()
-
-
-        .setTitle(
-            "🔥 Vatos MC Aufstellung"
-        )
-
-
-        .setDescription(`
+            .setDescription(`
 
 📅 **Datum:** **${data.datum}**
 
@@ -255,27 +237,36 @@ Reagiere mit:
 `)
 
 
-        .setColor(0xff0000);
+            .setColor(0xff0000);
 
 
 
 
+        await reaction.message.edit({
 
-    await reaction.message.edit({
+            embeds: [
+                embed
+            ]
 
-        embeds: [
-            embed
-        ]
-
-    });
-
+        });
 
 
-    console.log(
-        "✅ Aufstellung aktualisiert:",
-        name
-    );
 
+        console.log(
+            "✅ Aufstellung aktualisiert:",
+            name
+        );
+
+
+
+    } catch (err) {
+
+        console.error(
+            "❌ Fehler bei Aufstellung-Reaktion:",
+            err
+        );
+
+    }
 
 }
 
