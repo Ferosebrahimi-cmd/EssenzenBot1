@@ -1,20 +1,27 @@
 require("dotenv").config();
 
 const { REST, Routes } = require("discord.js");
+
 const essenzen = require("./commands/essenzen");
+const aufstellung = require("./commands/aufstellung");
+
 
 const commands = [
-    essenzen.data.toJSON()
+    essenzen.data.toJSON(),
+    aufstellung.data.toJSON()
 ];
+
 
 const rest = new REST({ version: "10" })
     .setToken(process.env.TOKEN);
+
 
 (async () => {
 
     try {
 
         console.log("Registriere Slash-Commands...");
+
 
         await rest.put(
             Routes.applicationGuildCommands(
@@ -26,10 +33,17 @@ const rest = new REST({ version: "10" })
             }
         );
 
+
         console.log("✅ Befehle aktualisiert!");
 
+
     } catch (error) {
-        console.error(error);
+
+        console.error(
+            "❌ Fehler beim Registrieren:",
+            error
+        );
+
     }
 
 })();
