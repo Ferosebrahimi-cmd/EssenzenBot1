@@ -5,119 +5,74 @@ const {
     Client,
     GatewayIntentBits,
     Collection,
-    Partials,
-    Events
+    Partials
 } = require("discord.js");
 
 const fs = require("fs");
 const path = require("path");
-
-
-// =========================
-// Aufstellung Modul
-// =========================
-
-// =========================
-// Aufstellung Modul
-// =========================
 
 const { startScheduler } = require("./Aufstellung/scheduler");
 const { synchronizeAufstellung } = require("./Aufstellung/syncReactions");
 
 
 
-// =========================
-// MongoDB verbinden
-// =========================
-
 require("./database/database");
 
-
-// =========================
-// Render Webserver
-// =========================
 
 const app = express();
 
 const PORT = process.env.PORT || 3000;
 
+
 app.get("/", (req, res) => {
     res.send("✅ EssenzenBot läuft!");
 });
 
+
 app.listen(PORT, () => {
-
-    console.log(
-        `🌐 Webserver läuft auf Port ${PORT}`
-    );
-
+    console.log(`🌐 Webserver läuft auf Port ${PORT}`);
 });
 
 
-// =========================
-// Discord Bot
-// =========================
 
 const client = new Client({
 
     intents: [
-
         GatewayIntentBits.Guilds,
-
         GatewayIntentBits.GuildMessages,
-
         GatewayIntentBits.MessageContent,
-
         GatewayIntentBits.GuildMembers,
-
         GatewayIntentBits.GuildMessageReactions
-
     ],
 
     partials: [
-
         Partials.Message,
-
         Partials.Channel,
-
         Partials.Reaction
-
     ]
 
 });
 
 
-// =========================
-// Reaction Test
-// =========================
-
-
-
-
-// =========================
-// Commands laden
-// =========================
 
 client.commands = new Collection();
 
-const commandsPath = path.join(
-    __dirname,
-    "commands"
-);
+
+
+const commandsPath = path.join(__dirname, "commands");
 
 
 if (fs.existsSync(commandsPath)) {
 
-    const commandFiles = fs
-        .readdirSync(commandsPath)
+    const commandFiles =
+        fs.readdirSync(commandsPath)
         .filter(file => file.endsWith(".js"));
 
 
     for (const file of commandFiles) {
 
-        const command = require(
-            path.join(commandsPath, file)
-        );
+        const command =
+            require(path.join(commandsPath, file));
 
 
         if (command.data && command.execute) {
@@ -139,14 +94,9 @@ if (fs.existsSync(commandsPath)) {
 }
 
 
-// =========================
-// Events laden
-// =========================
 
-const eventsPath = path.join(
-    __dirname,
-    "events"
-);
+
+const eventsPath = path.join(__dirname, "events");
 
 
 console.log(
@@ -155,11 +105,12 @@ console.log(
 );
 
 
+
 if (fs.existsSync(eventsPath)) {
 
 
-    const eventFiles = fs
-        .readdirSync(eventsPath)
+    const eventFiles =
+        fs.readdirSync(eventsPath)
         .filter(file => file.endsWith(".js"));
 
 
@@ -169,12 +120,12 @@ if (fs.existsSync(eventsPath)) {
     );
 
 
+
     for (const file of eventFiles) {
 
 
-        const event = require(
-            path.join(eventsPath, file)
-        );
+        const event =
+            require(path.join(eventsPath, file));
 
 
         if (event.name && event.execute) {
@@ -198,76 +149,99 @@ if (fs.existsSync(eventsPath)) {
 }
 
 
-// =========================
-// Bot Online
-// =========================
-
-client.once(Events.ClientReady, async () => {
 
 
-    client.user.setPresence({
 
-        status: "online",
-
-        activities: [
-
-            {
-
-                name: "Essenzen verwalten",
-
-                type: 0
-
-            }
-
-        ]
-
-    });
+client.once("ready", async () => {
 
 
-    console.log("==============================");
-
-    console.log(
-        `🤖 Bot: ${client.user.tag}`
-    );
+    try {
 
 
-    console.log(
-        `📡 Server: ${client.guilds.cache.size}`
-    );
+        client.user.setPresence({
+
+            status: "online",
+
+            activities: [
+
+                {
+
+                    name: "Essenzen verwalten",
+
+                    type: 0
+
+                }
+
+            ]
+
+        });
 
 
-    console.log(
-        "🟢 Status: Online"
-    );
+
+        console.log("==============================");
+
+        console.log(
+            `🤖 Bot: ${client.user.tag}`
+        );
+
+        console.log(
+            `📡 Server: ${client.guilds.cache.size}`
+        );
+
+        console.log(
+            "🟢 Status: Online"
+        );
+
+        console.log(
+            "✅ Bot erfolgreich gestartet"
+        );
+
+        console.log("==============================");
 
 
-    console.log(
-        "✅ Bot erfolgreich gestartet"
-    );
+
+        await synchronizeAufstellung(client);
 
 
-    console.log("==============================");
+
+        
+
+     
 
 
-    await synchronizeAufstellung(client);
-    startScheduler(client);
 
+        // täglicher Aufstellungs-Scheduler
+
+        startScheduler(client);
+
+
+
+    } catch (error) {
+
+
+        console.error(
+            "❌ Fehler beim Starten der Aufstellung:",
+            error
+        );
+
+
+    }
 
 
 });
 
 
-// =========================
-// Slash Commands
-// =========================
+
+
+
 
 client.on(
     "interactionCreate",
     async interaction => {
 
 
-        if (!interaction.isChatInputCommand())
-            return;
+        if (!interaction.isChatInputCommand()) return;
+
 
 
         const command =
@@ -276,15 +250,16 @@ client.on(
             );
 
 
-        if (!command)
-            return;
+
+        if (!command) return;
+
 
 
         try {
 
-            await command.execute(
-                interaction
-            );
+
+            await command.execute(interaction);
+
 
 
         } catch (error) {
@@ -293,14 +268,17 @@ client.on(
             console.error(error);
 
 
+
             const antwort = {
 
                 content:
                     "❌ Fehler beim Ausführen.",
 
-                ephemeral: true
+                ephemeral:
+                    true
 
             };
+
 
 
             if (
@@ -321,7 +299,9 @@ client.on(
                     antwort
                 );
 
+
             }
+
 
         }
 
@@ -330,25 +310,30 @@ client.on(
 );
 
 
-// =========================
-// Discord Login
-// =========================
 
-client.login(
-    process.env.TOKEN
-)
+
+
+
+client.login(process.env.TOKEN)
+
 .then(() => {
+
 
     console.log(
         "🔑 Discord Login erfolgreich"
     );
 
+
 })
+
+
 .catch(error => {
+
 
     console.error(
         "❌ Discord Login Fehler:",
         error
     );
+
 
 });
