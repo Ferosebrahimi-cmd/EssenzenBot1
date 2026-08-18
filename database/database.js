@@ -22,10 +22,10 @@ const userSchema = new mongoose.Schema({
         default: "Unbekannt"
     },
 
-    essenzen: {
-        type: Number,
-        default: 0
-    }
+  essenzen: {
+    type: Number,
+    default: -184
+}
 });
 
 
