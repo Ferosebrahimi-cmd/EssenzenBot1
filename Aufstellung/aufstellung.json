@@ -1,8 +1,167 @@
 {
-  "messageId": null,
-  "channelId": null,
-  "datum": null,
-  "alle": [],
-  "dabei": [],
-  "nichtDabei": []
+    "messageId": "1540797709806473389",
+    "channelId": "1516549299834458127",
+    "datum": "23.8.2026",
+    "alle": [
+        {
+            "id": "773920827845902366",
+            "name": "VMC | Franco Morales"
+        },
+        {
+            "id": "676532114224578574",
+            "name": "VMC | Juanito Esco"
+        },
+        {
+            "id": "208568493451247617",
+            "name": "VMC | Eze Salamanca"
+        },
+        {
+            "id": "100281535957045248",
+            "name": "VMC | Alfonso Riva"
+        },
+        {
+            "id": "483599147560206337",
+            "name": "VMC | Sebastian Ortiz"
+        },
+        {
+            "id": "1055194596306583722",
+            "name": "VMC | Rafi Latorre Alvarez Esco"
+        },
+        {
+            "id": "857934398711398407",
+            "name": "VMC | Angel Huerta"
+        },
+        {
+            "id": "218318220208242699",
+            "name": "VMC | Salazar Peralta"
+        },
+        {
+            "id": "532219991228022794",
+            "name": "VMC | Amardo Gringo"
+        },
+        {
+            "id": "656626158645018628",
+            "name": "VMC I Amalia Cortez"
+        },
+        {
+            "id": "794733112364892200",
+            "name": "VMC Alejandro Martinez"
+        },
+        {
+            "id": "830902447740026930",
+            "name": "VMC | Bruno cruz"
+        },
+        {
+            "id": "314772276358676490",
+            "name": "VMC | Carlos Hernandez"
+        },
+        {
+            "id": "970645489013907496",
+            "name": "VMC | Ranulfo Rascon"
+        },
+        {
+            "id": "199202705867145217",
+            "name": "VMC | Samuel La Patek"
+        },
+        {
+            "id": "376397387507433474",
+            "name": "VMC I Gonzo Hernandez"
+        },
+        {
+            "id": "989536212970799144",
+            "name": "VMC | Raul Reyes"
+        },
+        {
+            "id": "1201847402160459827",
+            "name": "VMC | Vito Maestro"
+        },
+        {
+            "id": "485795196559425546",
+            "name": "VMC | Leon Sola"
+        },
+        {
+            "id": "1008409818412879992",
+            "name": "VMC | Miklo Aguilar"
+        },
+        {
+            "id": "992054128807264306",
+            "name": "VMC | Ezequiel Vazquez"
+        },
+        {
+            "id": "663059245750812675",
+            "name": "VMC | Gonzalo De Cruz"
+        },
+        {
+            "id": "1096516687450349589",
+            "name": "VMC | Luna Esco"
+        },
+        {
+            "id": "786611497358458920",
+            "name": "VMC | Jody Mendoza"
+        },
+        {
+            "id": "1254140282782351431",
+            "name": "VMC | Dario Alcatraz"
+        },
+        {
+            "id": "781587407820423208",
+            "name": "VMC | Sonter Alvarez"
+        },
+        {
+            "id": "1233480900680089633",
+            "name": "VMC | Gitano Aguilar De Cruz"
+        },
+        {
+            "id": "1151583510457487421",
+            "name": "VMC I Fernando Aguilar JR"
+        },
+        {
+            "id": "1098743123280138250",
+            "name": "VMC | Elandor Castell"
+        },
+        {
+            "id": "1437178356276662282",
+            "name": "VMC | Rico De Cruz Shark"
+        },
+        {
+            "id": "1406789352482410647",
+            "name": "VMC | Nayeli Hernandez"
+        },
+        {
+            "id": "500651789700562954",
+            "name": "VMC | BabyG"
+        },
+        {
+            "id": "323916557283622922",
+            "name": "VMC | Neri Diaz"
+        },
+        {
+            "id": "1197377107643346994",
+            "name": "VMC | Cruz Fernández Garcia"
+        }
+    ],
+    "dabei": [
+        "794733112364892200",
+        "773920827845902366",
+        "100281535957045248",
+        "830902447740026930",
+        "676532114224578574",
+        "1254140282782351431",
+        "1096516687450349589",
+        "1233480900680089633",
+        "857934398711398407",
+        "663059245750812675",
+        "1201847402160459827",
+        "656626158645018628",
+        "1151583510457487421",
+        "970645489013907496",
+        "1055194596306583722",
+        "483599147560206337",
+        "323916557283622922",
+        "199202705867145217"
+    ],
+    "nichtDabei": [
+        "208568493451247617",
+        "532219991228022794"
+    ]
 }

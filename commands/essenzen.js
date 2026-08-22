@@ -72,101 +72,97 @@ module.exports = {
         // Rangliste
         // =========================
 
-        if (sub === "rangliste") {
+        // =========================
+// Rangliste
+// =========================
 
+if (sub === "rangliste") {
 
-            await interaction.deferReply();
+    await interaction.deferReply();
 
+    const users = await User.find()
+        .sort({
+            essenzen: -1
+        });
 
+    if (!users.length) {
 
-            const users =
-                await User.find()
-                    .sort({
-                        essenzen: -1
-                    });
+        return interaction.editReply(
+            "Keine Daten vorhanden."
+        );
 
+    }
 
+    let liste = "";
+    let platz = 1;
 
-            if (!users.length) {
+    for (let i = 0; i < users.length; i++) {
 
-                return interaction.editReply(
-                    "Keine Daten vorhanden."
-                );
+        let member;
 
-            }
+        try {
 
+            // Prüfen, ob der User noch auf dem Server ist
+            member = await interaction.guild.members.fetch(
+                users[i].id
+            );
 
+        } catch {
 
-            let liste = "";
-
-
-
-            for (let i = 0; i < users.length; i++) {
-
-
-                let name =
-                    users[i].nickname || "Unbekannt";
-
-
-
-                try {
-
-                    const member =
-                        await interaction.guild.members.fetch(
-                            users[i].id
-                        );
-
-
-                    name =
-                        member.nickname ||
-                        member.user.username;
-
-
-                } catch {}
-
-
-
-                liste +=
-                    `${i + 1}. ${name} = ${users[i].essenzen} Essenzen\n`;
-
-
-                // Discord Embed Limit
-                if (liste.length >= 3800) {
-
-                    liste += "\nWeitere Spieler werden nicht angezeigt.";
-
-                    break;
-
-                }
-
-            }
-
-
-
-            const embed =
-                new EmbedBuilder()
-
-                    .setTitle(
-                        "Essenzen Rangliste"
-                    )
-
-                    .setDescription(
-                        liste
-                    );
-
-
-
-            return interaction.editReply({
-
-                embeds: [
-                    embed
-                ]
-
-            });
-
+            // User ist nicht mehr auf dem Server
+            continue;
 
         }
 
+        const name =
+            member.nickname ||
+            member.user.username;
+
+        liste +=
+            `${platz}. ${name} = ${users[i].essenzen} Essenzen\n`;
+
+        platz++;
+
+        // Discord Embed Limit
+        if (liste.length >= 3800) {
+
+            liste +=
+                "\nWeitere Spieler werden nicht angezeigt.";
+
+            break;
+
+        }
+
+    }
+
+    if (!liste) {
+
+        return interaction.editReply(
+            "Keine Mitglieder mit Essenzen gefunden."
+        );
+
+    }
+
+    const embed =
+        new EmbedBuilder()
+
+            .setTitle(
+                "Essenzen Rangliste"
+            )
+
+            .setDescription(
+                liste
+            );
+
+    return interaction.editReply({
+
+        embeds: [
+            embed
+        ]
+
+    });
+
+}
 
 
         // =========================
