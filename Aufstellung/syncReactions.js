@@ -9,20 +9,35 @@ const {
 
 const VOTE_EMOJIS = ["✅", "❌", "❔"];
 
+
 function chooseVote(emojis, data, participant) {
-    if (emojis.size === 1) return [...emojis][0];
+
+    if (emojis.size === 1) {
+        return [...emojis][0];
+    }
 
     // Alte Auswahl behalten, falls mehrere Reaktionen vorhanden sind
-    if (isSelected(data.dabei, participant) && emojis.has("✅")) {
+    if (
+        isSelected(data.dabei, participant) &&
+        emojis.has("✅")
+    ) {
         return "✅";
     }
 
-    if (isSelected(data.nichtDabei, participant) && emojis.has("❌")) {
+    if (
+        isSelected(data.nichtDabei, participant) &&
+        emojis.has("❌")
+    ) {
         return "❌";
     }
 
-    if (emojis.has("❔")) return "❔";
-    if (emojis.has("❌")) return "❌";
+    if (emojis.has("❔")) {
+        return "❔";
+    }
+
+    if (emojis.has("❌")) {
+        return "❌";
+    }
 
     return "✅";
 }
@@ -35,7 +50,8 @@ async function synchronizeAufstellung(client) {
         console.log("🔄 Starte Aufstellungs-Sync...");
 
 
-        const data = normalizeData(load());
+        const data =
+            normalizeData(load());
 
 
         console.log(
@@ -55,9 +71,10 @@ async function synchronizeAufstellung(client) {
         }
 
 
-
         const channel =
-            await client.channels.fetch(data.channelId);
+            await client.channels.fetch(
+                data.channelId
+            );
 
 
         if (!channel?.isTextBased()) {
@@ -70,23 +87,21 @@ async function synchronizeAufstellung(client) {
         }
 
 
-
         const message =
-            await channel.messages.fetch(data.messageId);
+            await channel.messages.fetch(
+                data.messageId
+            );
 
 
+        // =========================
+        // Reaktionen laden
+        // =========================
 
-        // Wichtig: echte Discord-Reaktionen laden
-        
-
-
-
-        const votesByUser = new Map();
-
+        const votesByUser =
+            new Map();
 
 
         for (const emoji of VOTE_EMOJIS) {
-
 
             const reaction =
                 message.reactions.cache.find(
@@ -98,17 +113,14 @@ async function synchronizeAufstellung(client) {
             if (!reaction) continue;
 
 
-
             const users =
                 await reaction.users.fetch();
 
 
-
             for (const user of users.values()) {
 
-
+                // Bots ignorieren
                 if (user.bot) continue;
-
 
 
                 if (!votesByUser.has(user.id)) {
@@ -130,6 +142,9 @@ async function synchronizeAufstellung(client) {
         }
 
 
+        // =========================
+        // Alte Daten merken
+        // =========================
 
         const previousData = {
 
@@ -142,19 +157,53 @@ async function synchronizeAufstellung(client) {
         };
 
 
-
         data.dabei = [];
-
         data.nichtDabei = [];
 
+
+        // =========================
+        // Reaktionen auswerten
+        // =========================
+
+        let aktiveMitglieder = 0;
+        let ehemaligeMitglieder = 0;
 
 
         for (const [userId, emojis] of votesByUser) {
 
+            let member;
 
-            const member =
-                await message.guild.members.fetch(userId);
 
+            try {
+
+                member =
+                    await message.guild.members.fetch(
+                        userId
+                    );
+
+            } catch (error) {
+
+                // User ist nicht mehr auf dem Server
+                if (error.code === 10007) {
+
+                    console.log(
+                        `⏭️ Ehemaliges Mitglied übersprungen: ${userId}`
+                    );
+
+                    ehemaligeMitglieder++;
+
+                    continue;
+                }
+
+
+                // Andere Fehler weiterhin anzeigen
+                console.error(
+                    `❌ Fehler beim Laden von Mitglied ${userId}:`,
+                    error
+                );
+
+                continue;
+            }
 
 
             const participant =
@@ -164,9 +213,10 @@ async function synchronizeAufstellung(client) {
                 );
 
 
-
             if (!participant) continue;
 
+
+            aktiveMitglieder++;
 
 
             const vote =
@@ -175,7 +225,6 @@ async function synchronizeAufstellung(client) {
                     previousData,
                     participant
                 );
-
 
 
             if (vote === "✅") {
@@ -198,10 +247,16 @@ async function synchronizeAufstellung(client) {
         }
 
 
+        // =========================
+        // Daten speichern
+        // =========================
 
         save(data);
 
 
+        // =========================
+        // Embed aktualisieren
+        // =========================
 
         await message.edit({
 
@@ -212,21 +267,31 @@ async function synchronizeAufstellung(client) {
         });
 
 
-
         console.log(
             `🔄 Aufstellung abgeglichen: ${votesByUser.size} Reaktionen geprüft`
         );
 
 
+        console.log(
+            `👥 Aktive Mitglieder: ${aktiveMitglieder}`
+        );
+
+
+        if (ehemaligeMitglieder > 0) {
+
+            console.log(
+                `⏭️ Ehemalige Mitglieder übersprungen: ${ehemaligeMitglieder}`
+            );
+
+        }
+
 
     } catch (error) {
-
 
         console.error(
             "❌ Aufstellung konnte beim Start nicht abgeglichen werden:",
             error
         );
-
 
     }
 
