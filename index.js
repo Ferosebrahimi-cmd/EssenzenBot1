@@ -312,7 +312,7 @@ client.on(
 );
 
 
-
+console.log("🔎 Discord Login wird gestartet...");
 
 client.login(process.env.TOKEN)
     .then(() => {
@@ -323,6 +323,4 @@ client.login(process.env.TOKEN)
         console.error("Name:", error.name);
         console.error("Message:", error.message);
         console.error("Code:", error.code);
-        console.error("Stack:", error.stack);
     });
-
