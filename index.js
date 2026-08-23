@@ -320,36 +320,10 @@ client.on(
 
 console.log("🔎 Discord Login wird gestartet...");
 
-(async () => {
-    try {
-        const response = await fetch(
-            "https://discord.com/api/v10/gateway/bot",
-            {
-                headers: {
-                    Authorization: `Bot ${process.env.TOKEN}`
-                },
-                signal: AbortSignal.timeout(15_000)
-            }
-        );
-
-        console.log("Gateway-Bot-API Status:", response.status);
-        console.log(
-            "Retry-After:",
-            response.headers.get("retry-after")
-        );
-
-        if (!response.ok) {
-            console.error(
-                "Gateway-Bot-API Antwort:",
-                await response.text()
-            );
-            return;
-        }
-
-        await client.login(process.env.TOKEN);
+client.login(process.env.TOKEN)
+    .then(() => {
         console.log("🔑 Discord Login erfolgreich");
-    } catch (error) {
-        console.error("❌ Discord-Startfehler:", error);
-    }
-})();
-
+    })
+    .catch(error => {
+        console.error("❌ Discord Login Fehler:", error);
+    });
