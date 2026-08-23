@@ -324,25 +324,7 @@ const loginTimeout = setTimeout(() => {
     );
 
 }, 30000);
-const https = require("https");
 
-https.get("https://discord.com/api/v10/gateway", (res) => {
-
-    console.log(
-        "🌐 Discord API erreichbar:",
-        res.statusCode
-    );
-
-    res.on("data", () => {});
-
-}).on("error", (error) => {
-
-    console.error(
-        "❌ Discord API nicht erreichbar:",
-        error.message
-    );
-
-});
 client.login(process.env.TOKEN)
 
     .then(() => {
