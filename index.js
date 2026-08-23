@@ -1,4 +1,8 @@
 require("dotenv").config();
+
+const dns = require("node:dns");
+dns.setDefaultResultOrder("ipv4first");
+
 console.log("🟢 Node Version:", process.version);
 
 const express = require("express");
@@ -314,7 +318,17 @@ client.on(
 
 
 console.log("🔎 Discord Login wird gestartet...");
+client.on(Events.ShardReady, id =>
+  console.log(`✅ Discord Gateway bereit (Shard ${id})`)
+);
 
+client.on(Events.ShardDisconnect, (event, id) =>
+  console.error(`❌ Gateway getrennt (Shard ${id}):`, event.code, event.reason)
+);
+
+client.on(Events.ShardError, (error, id) =>
+  console.error(`❌ Gateway-Fehler (Shard ${id}):`, error)
+);
 client.login(process.env.TOKEN)
     .then(() => {
         console.log("🔑 Discord Login erfolgreich");
