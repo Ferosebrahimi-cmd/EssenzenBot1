@@ -313,30 +313,17 @@ client.on(
 
 
 
-console.log("🔎 Discord Login wird gestartet...");
-console.log("TOKEN vorhanden:", !!process.env.TOKEN);
-console.log("TOKEN Länge:", process.env.TOKEN ? process.env.TOKEN.length : 0);
-const https = require("https");
-
-console.log("🌐 Teste Verbindung zu Discord...");
-
-https.get("https://discord.com/api/v10/gateway", (res) => {
-    console.log("🌐 Discord HTTP Status:", res.statusCode);
-
-    res.on("data", () => {});
-    res.on("end", () => {
-        console.log("🌐 Discord HTTPS Verbindung erfolgreich");
-    });
-
-}).on("error", (error) => {
-
-    console.error("❌ Discord HTTPS Verbindung fehlgeschlagen:");
-    console.error("Name:", error.name);
-    console.error("Message:", error.message);
-    console.error("Code:", error.code);
-
+client.on("debug", (info) => {
+    console.log("🔧 DISCORD DEBUG:", info);
 });
 
+client.on("warn", (info) => {
+    console.warn("⚠️ DISCORD WARN:", info);
+});
+
+client.on("error", (error) => {
+    console.error("❌ DISCORD CLIENT ERROR:", error);
+});
 client.login(process.env.TOKEN)
     .then(() => {
         console.log("🔑 Discord Login erfolgreich");
@@ -348,3 +335,4 @@ client.login(process.env.TOKEN)
         console.error("Code:", error.code);
         console.error("Stack:", error.stack);
     });
+
