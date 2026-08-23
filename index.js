@@ -6,7 +6,8 @@ const {
     Client,
     GatewayIntentBits,
     Collection,
-    Partials
+    Partials,
+    Events
 } = require("discord.js");
 
 const fs = require("fs");
@@ -153,7 +154,7 @@ if (fs.existsSync(eventsPath)) {
 
 
 
-client.once("ready", async () => {
+client.once(Events.ClientReady, async () => {
 
 
     try {
@@ -310,40 +311,20 @@ client.on(
     }
 );
 
+
+
 console.log("🔎 Discord Login wird gestartet...");
 console.log("TOKEN vorhanden:", !!process.env.TOKEN);
-console.log(
-    "TOKEN Länge:",
-    process.env.TOKEN ? process.env.TOKEN.length : 0
-);
-
-const loginTimeout = setTimeout(() => {
-
-    console.error(
-        "❌ Discord Login hängt seit über 30 Sekunden!"
-    );
-
-}, 30000);
+console.log("TOKEN Länge:", process.env.TOKEN ? process.env.TOKEN.length : 0);
 
 client.login(process.env.TOKEN)
-
     .then(() => {
-
-        clearTimeout(loginTimeout);
-
-        console.log(
-            "🔑 Discord Login erfolgreich"
-        );
-
+        console.log("🔑 Discord Login erfolgreich");
     })
-
     .catch(error => {
-
-        clearTimeout(loginTimeout);
-
-        console.error(
-            "❌ Discord Login Fehler:",
-            error
-        );
-
+        console.error("❌ Discord Login Fehler:", error);
+        console.error("Name:", error.name);
+        console.error("Message:", error.message);
+        console.error("Code:", error.code);
+        console.error("Stack:", error.stack);
     });
