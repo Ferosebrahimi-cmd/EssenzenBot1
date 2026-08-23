@@ -311,6 +311,13 @@ client.on(
     }
 );
 
+client.on("debug", (info) => {
+    console.log("🔧 DISCORD DEBUG:", info);
+});
+
+client.on("error", (error) => {
+    console.error("❌ DISCORD ERROR:", error);
+});
 
 console.log("🔎 Discord Login wird gestartet...");
 
