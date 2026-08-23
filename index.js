@@ -309,7 +309,9 @@ client.on(
     }
 );
 
-
+console.log("🔎 Discord Login wird gestartet...");
+console.log("TOKEN vorhanden:", !!process.env.TOKEN);
+console.log("TOKEN Länge:", process.env.TOKEN ? process.env.TOKEN.length : 0);
 
 
 
