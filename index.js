@@ -42,7 +42,6 @@ app.listen(PORT, () => {
 
 
 const client = new Client({
-
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
@@ -55,10 +54,12 @@ const client = new Client({
         Partials.Message,
         Partials.Channel,
         Partials.Reaction
-    ]
+    ],
 
+    ws: {
+        compress: false
+    }
 });
-
 
 
 client.commands = new Collection();
