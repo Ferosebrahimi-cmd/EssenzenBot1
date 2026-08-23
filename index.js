@@ -329,6 +329,23 @@ client.on(Events.ShardDisconnect, (event, id) =>
 client.on(Events.ShardError, (error, id) =>
   console.error(`❌ Gateway-Fehler (Shard ${id}):`, error)
 );
+(async () => {
+    try {
+        const response = await fetch(
+            "https://discord.com/api/v10/users/@me",
+            {
+                headers: {
+                    Authorization: `Bot ${process.env.TOKEN}`
+                },
+                signal: AbortSignal.timeout(10_000)
+            }
+        );
+
+        console.log("Discord-API-Test – Status:", response.status);
+    } catch (error) {
+        console.error("Discord-API-Test fehlgeschlagen:", error);
+    }
+})();
 client.login(process.env.TOKEN)
     .then(() => {
         console.log("🔑 Discord Login erfolgreich");
