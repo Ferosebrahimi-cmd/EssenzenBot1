@@ -332,6 +332,29 @@ client.on(Events.ShardError, (error, id) =>
 client.on(Events.Debug, info => {
     console.log("Discord Debug:", info);
 });
+const WebSocket = require("ws");
+
+const gatewayProbe = new WebSocket(
+    "wss://gateway.discord.gg/?v=10&encoding=json",
+    { handshakeTimeout: 15_000 }
+);
+
+gatewayProbe.on("open", () => {
+    console.log("✅ Gateway-WebSocket-Test verbunden");
+    gatewayProbe.close();
+});
+
+gatewayProbe.on("message", () => {
+    console.log("✅ Gateway-WebSocket-Test erhält Daten");
+});
+
+gatewayProbe.on("error", error => {
+    console.error("❌ Gateway-WebSocket-Test Fehler:", error);
+});
+
+gatewayProbe.on("close", (code, reason) => {
+    console.log("Gateway-WebSocket-Test geschlossen:", code, reason.toString());
+});
 client.login(process.env.TOKEN)
     .then(() => {
         console.log("🔑 Discord Login erfolgreich");
