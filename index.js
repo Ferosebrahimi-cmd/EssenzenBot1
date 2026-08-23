@@ -311,37 +311,9 @@ client.on(
     }
 );
 
-client.on("debug", (info) => {
-    console.log("🔧 DISCORD DEBUG:", info);
-});
 
-client.on("error", (error) => {
-    console.error("❌ DISCORD ERROR:", error);
-});
 
 console.log("🔎 Discord Login wird gestartet...");
-const https = require("https");
-
-console.log("🌐 Teste Discord API...");
-
-https.get("https://discord.com/api/v10/gateway", (res) => {
-
-    console.log("🌐 Discord API Status:", res.statusCode);
-
-    res.on("data", () => {});
-
-    res.on("end", () => {
-        console.log("🌐 Discord API Test beendet");
-    });
-
-}).on("error", (error) => {
-
-    console.error("❌ Discord API Test Fehler:");
-    console.error("Name:", error.name);
-    console.error("Message:", error.message);
-    console.error("Code:", error.code);
-
-});
 
 client.login(process.env.TOKEN)
     .then(() => {
@@ -353,3 +325,4 @@ client.login(process.env.TOKEN)
         console.error("Message:", error.message);
         console.error("Code:", error.code);
     });
+
