@@ -1,4 +1,5 @@
 require("dotenv").config();
+console.log("🟢 Node Version:", process.version);
 
 const express = require("express");
 const {
@@ -311,31 +312,38 @@ client.on(
 
 console.log("🔎 Discord Login wird gestartet...");
 console.log("TOKEN vorhanden:", !!process.env.TOKEN);
-console.log("TOKEN Länge:", process.env.TOKEN ? process.env.TOKEN.length : 0);
+console.log(
+    "TOKEN Länge:",
+    process.env.TOKEN ? process.env.TOKEN.length : 0
+);
 
+const loginTimeout = setTimeout(() => {
 
+    console.error(
+        "❌ Discord Login hängt seit über 30 Sekunden!"
+    );
 
+}, 30000);
 
 client.login(process.env.TOKEN)
 
-.then(() => {
+    .then(() => {
 
+        clearTimeout(loginTimeout);
 
-    console.log(
-        "🔑 Discord Login erfolgreich"
-    );
+        console.log(
+            "🔑 Discord Login erfolgreich"
+        );
 
+    })
 
-})
+    .catch(error => {
 
+        clearTimeout(loginTimeout);
 
-.catch(error => {
+        console.error(
+            "❌ Discord Login Fehler:",
+            error
+        );
 
-
-    console.error(
-        "❌ Discord Login Fehler:",
-        error
-    );
-
-
-});
+    });
