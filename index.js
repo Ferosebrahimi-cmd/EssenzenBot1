@@ -319,51 +319,37 @@ client.on(
 
 
 console.log("🔎 Discord Login wird gestartet...");
-client.on(Events.ShardReady, id =>
-  console.log(`✅ Discord Gateway bereit (Shard ${id})`)
-);
 
-client.on(Events.ShardDisconnect, (event, id) =>
-  console.error(`❌ Gateway getrennt (Shard ${id}):`, event.code, event.reason)
-);
+(async () => {
+    try {
+        const response = await fetch(
+            "https://discord.com/api/v10/gateway/bot",
+            {
+                headers: {
+                    Authorization: `Bot ${process.env.TOKEN}`
+                },
+                signal: AbortSignal.timeout(15_000)
+            }
+        );
 
-client.on(Events.ShardError, (error, id) =>
-  console.error(`❌ Gateway-Fehler (Shard ${id}):`, error)
-);
-client.on(Events.Debug, info => {
-    console.log("Discord Debug:", info);
-});
-const WebSocket = require("ws");
+        console.log("Gateway-Bot-API Status:", response.status);
+        console.log(
+            "Retry-After:",
+            response.headers.get("retry-after")
+        );
 
-const gatewayProbe = new WebSocket(
-    "wss://gateway.discord.gg/?v=10&encoding=json",
-    { handshakeTimeout: 15_000 }
-);
+        if (!response.ok) {
+            console.error(
+                "Gateway-Bot-API Antwort:",
+                await response.text()
+            );
+            return;
+        }
 
-gatewayProbe.on("open", () => {
-    console.log("✅ Gateway-WebSocket-Test verbunden");
-    gatewayProbe.close();
-});
-
-gatewayProbe.on("message", () => {
-    console.log("✅ Gateway-WebSocket-Test erhält Daten");
-});
-
-gatewayProbe.on("error", error => {
-    console.error("❌ Gateway-WebSocket-Test Fehler:", error);
-});
-
-gatewayProbe.on("close", (code, reason) => {
-    console.log("Gateway-WebSocket-Test geschlossen:", code, reason.toString());
-});
-client.login(process.env.TOKEN)
-    .then(() => {
+        await client.login(process.env.TOKEN);
         console.log("🔑 Discord Login erfolgreich");
-    })
-    .catch(error => {
-        console.error("❌ Discord Login Fehler:", error);
-        console.error("Name:", error.name);
-        console.error("Message:", error.message);
-        console.error("Code:", error.code);
-    });
+    } catch (error) {
+        console.error("❌ Discord-Startfehler:", error);
+    }
+})();
 
