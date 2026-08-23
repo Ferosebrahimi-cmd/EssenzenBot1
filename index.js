@@ -313,17 +313,7 @@ client.on(
 
 
 
-client.on("debug", (info) => {
-    console.log("🔧 DISCORD DEBUG:", info);
-});
 
-client.on("warn", (info) => {
-    console.warn("⚠️ DISCORD WARN:", info);
-});
-
-client.on("error", (error) => {
-    console.error("❌ DISCORD CLIENT ERROR:", error);
-});
 client.login(process.env.TOKEN)
     .then(() => {
         console.log("🔑 Discord Login erfolgreich");
