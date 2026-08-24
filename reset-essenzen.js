@@ -16,13 +16,13 @@ async function resetEssenzen() {
                 {},
                 {
                     $set: {
-                        essenzen: -184
+                        essenzen: 0
                     }
                 }
             );
 
 
-            console.log("✅ Alle Essenzen wurden auf -184 gesetzt");
+            console.log("✅ Alle Essenzen wurden auf 0 gesetzt");
 
 
             process.exit(0);

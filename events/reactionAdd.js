@@ -1,6 +1,5 @@
 const { Events } = require("discord.js");
 const { execute: handleReaction } = require("../Aufstellung/reactions");
-const { synchronizeAufstellung } = require("../Aufstellung/syncReactions");
 
 module.exports = {
     name: Events.MessageReactionAdd,
@@ -22,9 +21,12 @@ module.exports = {
             );
 
             await handleReaction(reaction, user);
-            await synchronizeAufstellung(client);
+
         } catch (error) {
-            console.error("❌ Fehler bei der Reaktionsverarbeitung:", error);
+            console.error(
+                "❌ Fehler bei der Reaktionsverarbeitung:",
+                error
+            );
         }
     }
 };
