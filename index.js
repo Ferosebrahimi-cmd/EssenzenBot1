@@ -246,84 +246,77 @@ client.on(
     "interactionCreate",
     async interaction => {
 
-
         if (!interaction.isChatInputCommand()) return;
-
-
 
         const command =
             client.commands.get(
                 interaction.commandName
             );
 
-
-
         if (!command) return;
-
-
 
         try {
 
-
             await command.execute(interaction);
-
-
 
         } catch (error) {
 
+            console.error(
+                "❌ Fehler beim Ausführen:",
+                error
+            );
 
-            console.error(error);
+            try {
 
+                if (
+                    interaction.replied ||
+                    interaction.deferred
+                ) {
 
+                    await interaction.followUp({
+                        content: "❌ Fehler beim Ausführen.",
+                        flags: 64
+                    });
 
-            const antwort = {
+                } else {
 
-                content:
-                    "❌ Fehler beim Ausführen.",
+                    await interaction.reply({
+                        content: "❌ Fehler beim Ausführen.",
+                        flags: 64
+                    });
 
-                ephemeral:
-                    true
+                }
 
-            };
+            } catch (replyError) {
 
-
-
-            if (
-                interaction.replied ||
-                interaction.deferred
-            ) {
-
-
-                await interaction.followUp(
-                    antwort
+                console.error(
+                    "❌ Fehler beim Senden der Fehlermeldung:",
+                    replyError
                 );
-
-
-            } else {
-
-
-                await interaction.reply(
-                    antwort
-                );
-
 
             }
 
-
         }
-
 
     }
 );
-
 
 
 console.log("🔎 Discord Login wird gestartet...");
 
 client.login(process.env.TOKEN)
     .then(() => {
-        console.log("🔑 Discord Login erfolgreich");
+
+        console.log(
+            "🔑 Discord Login erfolgreich"
+        );
+
     })
     .catch(error => {
-        console.error("❌ Discord Login Fehler:", error);
+
+        console.error(
+            "❌ Discord Login Fehler:",
+            error
+        );
+
     });
