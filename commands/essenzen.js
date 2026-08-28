@@ -126,12 +126,19 @@ module.exports = {
 
 if (sub === "rangliste") {
 
+    console.log("🟢 Rangliste gestartet");
+
     await interaction.deferReply();
+
+    console.log("🟢 deferReply erfolgreich");
 
     const users = await User.find()
         .sort({
             essenzen: -1
         });
+
+    console.log("🟢 Datenbankabfrage fertig");
+    console.log("👥 User:", users.length);
 
     if (!users.length) {
 
