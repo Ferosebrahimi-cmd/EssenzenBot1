@@ -10,21 +10,21 @@ module.exports = {
 
     data: new SlashCommandBuilder()
 
-        .setName("essenzen")
-        .setDescription("Essenzen Verwaltung")
+        .setName("verarbeitet")
+.setDescription("Verarbeitet Verwaltung")
 
 
         .addSubcommand(sub =>
             sub
                 .setName("rangliste")
-                .setDescription("Zeigt alle Essenzen")
+                .setDescription("Zeigt alle Verarbeitet")
         )
 
 
         .addSubcommand(sub =>
             sub
                 .setName("geben")
-                .setDescription("Gibt Essenzen")
+                .setDescription("Gibt Verarbeitet")
                 .addUserOption(option =>
                     option
                         .setName("user")
@@ -43,7 +43,7 @@ module.exports = {
         .addSubcommand(sub =>
             sub
                 .setName("entfernen")
-                .setDescription("Entfernt Essenzen")
+                .setDescription("Entfernt Verarbeitet")
                 .addUserOption(option =>
                     option
                         .setName("user")
@@ -56,8 +56,13 @@ module.exports = {
                         .setDescription("Menge")
                         .setRequired(true)
                 )
+        )
+        
+    .addSubcommand(sub =>
+            sub
+                .setName("reset")
+                .setDescription("Setzt alle Verarbeitet auf 0")
         ),
-
 
 
     async execute(interaction) {
@@ -65,7 +70,50 @@ module.exports = {
 
         const sub =
             interaction.options.getSubcommand();
+        // =========================
+        // Reset
+        // =========================
 
+        if (sub === "reset") {
+
+            const istLeader =
+                interaction.member.roles.cache.some(
+                    role =>
+                        role.name === "Leader"
+                );
+
+            if (!istLeader) {
+
+                return interaction.reply({
+
+                    content:
+                        "Du benötigst die Leader-Rolle.",
+
+                    ephemeral: true
+
+                });
+
+            }
+
+            await User.updateMany(
+                {},
+                {
+                    $set: {
+                        essenzen: 0
+                    }
+                }
+            );
+
+            return interaction.reply({
+
+                content:
+                    "✅ Alle Verarbeitet wurden auf 0 gesetzt.",
+
+                ephemeral: true
+
+            });
+
+        }
 
 
         // =========================
@@ -138,7 +186,7 @@ if (sub === "rangliste") {
     if (!liste) {
 
         return interaction.editReply(
-            "Keine Mitglieder mit Essenzen gefunden."
+            "Keine Mitglieder mit Verarbeitet gefunden."
         );
 
     }
@@ -163,7 +211,6 @@ if (sub === "rangliste") {
     });
 
 }
-
 
         // =========================
         // Leader Rechte
@@ -282,7 +329,7 @@ if (sub === "rangliste") {
         await interaction.reply({
 
             content:
-                "Essenzen aktualisiert.",
+                "Verarbeitet aktualisiert.",
 
             ephemeral: true
 
