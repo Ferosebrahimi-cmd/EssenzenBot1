@@ -119,7 +119,7 @@ if (sub === "rangliste") {
             member.user.username;
 
         liste +=
-            `${platz}. ${name} = ${users[i].essenzen} Essenzen\n`;
+    `${platz}. ${name} = ${users[i].essenzen} Verarbeitet\n`;
 
         platz++;
 
@@ -147,8 +147,8 @@ if (sub === "rangliste") {
         new EmbedBuilder()
 
             .setTitle(
-                "Essenzen Rangliste"
-            )
+    "Verarbeitet Rangliste"
+)
 
             .setDescription(
                 liste
