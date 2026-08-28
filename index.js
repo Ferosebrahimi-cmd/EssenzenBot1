@@ -247,7 +247,9 @@ client.on(
     async interaction => {
 
         if (!interaction.isChatInputCommand()) return;
-
+console.log(
+    `💬 Command empfangen: /${interaction.commandName} ${interaction.options.getSubcommand()}`
+);
         const command =
             client.commands.get(
                 interaction.commandName
