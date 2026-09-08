@@ -61,7 +61,7 @@ module.exports = {
     .addSubcommand(sub =>
             sub
                 .setName("reset")
-                .setDescription("Setzt alle Verarbeitet auf 0")
+                .setDescription("Setzt alle Verarbeitet auf -350")
         ),
 
 
@@ -99,7 +99,7 @@ module.exports = {
                 {},
                 {
                     $set: {
-                        essenzen: 0
+                        essenzen: -350
                     }
                 }
             );
@@ -107,7 +107,7 @@ module.exports = {
             return interaction.reply({
 
                 content:
-                    "✅ Alle Verarbeitet wurden auf 0 gesetzt.",
+                    "✅ Alle Verarbeitet wurden auf -350 gesetzt.",
 
                 ephemeral: true
 
@@ -292,7 +292,7 @@ if (sub === "rangliste") {
                     nickname,
 
                 essenzen:
-                    0
+                    -350
 
             });
 
@@ -316,14 +316,8 @@ if (sub === "rangliste") {
 
         if (sub === "entfernen") {
 
-            user.essenzen -= menge;
+    user.essenzen -= menge;
 
-
-            if (user.essenzen < 0) {
-
-                user.essenzen = 0;
-
-            }
 
         }
 

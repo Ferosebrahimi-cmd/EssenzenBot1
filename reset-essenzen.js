@@ -9,26 +9,28 @@ async function resetEssenzen() {
 
     try {
 
-        await mongoose.connection.once("open", async () => {
+        // Warten, bis MongoDB verbunden ist
+        await mongoose.connection.asPromise();
 
 
-            await User.updateMany(
-                {},
-                {
-                    $set: {
-                        essenzen: 0
-                    }
+        const result = await User.updateMany(
+            {},
+            {
+                $set: {
+                    essenzen: -350
                 }
-            );
+            }
+        );
 
 
-            console.log("✅ Alle Essenzen wurden auf 0 gesetzt");
+        console.log(
+            `✅ Alle Essenzen wurden auf -350 gesetzt (${result.modifiedCount} geändert)`
+        );
 
 
-            process.exit(0);
+        await mongoose.connection.close();
 
-
-        });
+        process.exit(0);
 
 
     } catch (error) {
@@ -38,7 +40,6 @@ async function resetEssenzen() {
             error
         );
 
-
         process.exit(1);
 
     }
@@ -46,22 +47,5 @@ async function resetEssenzen() {
 }
 
 
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => {
+resetEssenzen();
 
-        console.log("✅ MongoDB verbunden");
-
-        resetEssenzen();
-
-    })
-    .catch(error => {
-
-        console.error(
-            "❌ MongoDB Fehler:",
-            error
-        );
-
-        process.exit(1);
-
-    });
-    
