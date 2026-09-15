@@ -17,14 +17,14 @@ async function resetEssenzen() {
             {},
             {
                 $set: {
-                    essenzen: -350
+                    essenzen: -220
                 }
             }
         );
 
 
         console.log(
-            `✅ Alle Essenzen wurden auf -350 gesetzt (${result.modifiedCount} geändert)`
+            `✅ Alle Essenzen wurden auf -220 gesetzt (${result.modifiedCount} geändert)`
         );
 
 
