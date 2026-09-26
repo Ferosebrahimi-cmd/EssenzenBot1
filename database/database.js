@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema({
 
   essenzen: {
     type: Number,
-    default: -220
+    default: 0
 }
 });
 
