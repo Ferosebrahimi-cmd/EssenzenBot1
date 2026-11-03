@@ -34,7 +34,7 @@ module.exports = {
             user = new User({
                 id: message.author.id,
                 nickname: message.member?.nickname || message.author.username,
-                essenzen: 0
+                essenzen: -100
             });
 
         }
