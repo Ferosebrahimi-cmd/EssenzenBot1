@@ -94,7 +94,7 @@ if (dateMatch) {
             name: member.displayName
         }));
 
-        await message.reactions.fetch();
+       
 
         const votesByUser = new Map();
 
