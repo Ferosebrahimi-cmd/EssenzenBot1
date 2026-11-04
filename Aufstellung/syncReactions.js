@@ -7,7 +7,24 @@ const {
     buildEmbed
 } = require("./state");
 
+const config = require("./config");
+
 const VOTE_EMOJIS = ["✅", "❌", "❔"];
+
+async function findCurrentAufstellung(channel, client) {
+    const messages = await channel.messages.fetch({ limit: 100 });
+
+    const matches = [...messages.values()]
+        .filter(message =>
+            message.author.id === client.user.id &&
+            message.embeds.some(embed =>
+                embed.title === "🔥 Vatos MC Aufstellung"
+            )
+        )
+        .sort((a, b) => b.createdTimestamp - a.createdTimestamp);
+
+    return matches[0] || null;
+}
 
 async function synchronizeAufstellung(client) {
     try {
@@ -15,21 +32,68 @@ async function synchronizeAufstellung(client) {
 
         const data = normalizeData(load());
 
-        if (!data.messageId || !data.channelId) {
-            console.log("⚠️ Keine Aufstellung zum Synchronisieren gefunden");
-            return;
+        if (!data.channelId) {
+            console.log("⚠️ Kein Aufstellungskanal gespeichert");
+            return false;
         }
 
         const channel = await client.channels.fetch(data.channelId);
 
-        if (!channel?.isTextBased()) {
-            console.log("⚠️ Kanal nicht gefunden");
-            return;
+        if (!channel?.isTextBased() || !channel.messages) {
+            console.log("❌ Aufstellungskanal nicht gefunden");
+            return false;
         }
 
-        const message = await channel.messages.fetch(data.messageId);
+        let message = null;
 
-        // Alle Reaktionen von Discord neu laden
+        if (data.messageId) {
+            try {
+                message = await channel.messages.fetch(data.messageId);
+            } catch (error) {
+                if (error.code !== 10008) throw error;
+
+                console.log("⚠️ Alte Nachrichten-ID ungültig. Suche aktuelle Aufstellung...");
+            }
+        }
+
+        if (!message) {
+            message = await findCurrentAufstellung(channel, client);
+        }
+
+        if (!message) {
+            console.log("❌ Keine aktuelle Aufstellung gefunden");
+            return false;
+        }
+
+        data.messageId = message.id;
+        data.channelId = channel.id;
+
+      const description = message.embeds[0]?.description || "";
+
+const dateMatch = description.match(/Datum:\*\*\s*\*\*(.*?)\*\*/);
+
+if (dateMatch) {
+    data.datum = dateMatch[1];
+}
+
+        const guild = message.guild;
+
+        await guild.members.fetch();
+
+        const role = guild.roles.cache.find(
+            r => r.name === config.roleName
+        );
+
+        if (!role) {
+            console.log("❌ Aufstellungsrolle nicht gefunden");
+            return false;
+        }
+
+        data.alle = [...role.members.values()].map(member => ({
+            id: member.id,
+            name: member.displayName
+        }));
+
         await message.reactions.fetch();
 
         const votesByUser = new Map();
@@ -54,36 +118,17 @@ async function synchronizeAufstellung(client) {
             }
         }
 
-        // Alte Abstimmungen vollständig neu aufbauen
         data.dabei = [];
         data.nichtDabei = [];
 
-        let aktiveMitglieder = 0;
-        let ehemaligeMitglieder = 0;
-
         for (const [userId, emojis] of votesByUser) {
-            let member;
+            const member = guild.members.cache.get(userId);
 
-            try {
-                member = await message.guild.members.fetch(userId);
-            } catch (error) {
-                if (error.code === 10007) {
-                    ehemaligeMitglieder++;
-                    continue;
-                }
-
-                console.error(`❌ Mitglied ${userId} konnte nicht geladen werden:`, error);
-                continue;
-            }
+            if (!member) continue;
 
             const participant = participantForMember(data, member);
-            if (!participant) continue;
 
-            aktiveMitglieder++;
-
-            // Nur eine eindeutige Reaktion wird übernommen.
-            // Mehrere Reaktionen bedeuten keine Rückmeldung.
-            if (emojis.size !== 1) continue;
+            if (!participant || emojis.size !== 1) continue;
 
             const vote = [...emojis][0];
 
@@ -100,15 +145,17 @@ async function synchronizeAufstellung(client) {
             embeds: [buildEmbed(data)]
         });
 
-        console.log(`✅ Aufstellung synchronisiert: ${votesByUser.size} Reaktionen geprüft`);
-        console.log(`👥 Aktive Mitglieder: ${aktiveMitglieder}`);
+        console.log("✅ Aufstellung erfolgreich synchronisiert");
+        console.log("🆔 Nachrichten-ID:", message.id);
+        console.log("👥 Mitglieder:", data.alle.length);
+        console.log("✅ Dabei:", data.dabei.length);
+        console.log("❌ Nicht dabei:", data.nichtDabei.length);
 
-        if (ehemaligeMitglieder > 0) {
-            console.log(`⏭️ Ehemalige Mitglieder übersprungen: ${ehemaligeMitglieder}`);
-        }
+        return true;
 
     } catch (error) {
-        console.error("❌ Aufstellung konnte beim Start nicht abgeglichen werden:", error);
+        console.error("❌ Aufstellung konnte nicht synchronisiert werden:", error);
+        return false;
     }
 }
 

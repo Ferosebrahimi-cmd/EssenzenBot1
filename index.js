@@ -140,8 +140,13 @@ client.once(Events.ClientReady, async () => {
     });
 
     try {
-        await synchronizeAufstellung(client);
-        console.log("✅ Aufstellung synchronisiert");
+        const synchronisiert = await synchronizeAufstellung(client);
+
+if (synchronisiert) {
+    console.log("✅ Aufstellung synchronisiert");
+} else {
+    console.log("⚠️ Aufstellung konnte nicht synchronisiert werden");
+}
     } catch (error) {
         console.error("❌ Fehler bei der Aufstellung:", error);
     }
